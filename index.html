@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Brainiac</title>
+    <style>
+      body {
+        background-color: #000000;
+      }
+      canvas {
+        background-color: #222222;
+      }
+    </style>
+  </head>
+  <body onload="init();">
+    <div align="center">
+      <canvas id="game-canvas" width="800" height="800"></canvas>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.0/pixi.min.js"></script>
+    <!-- all components -->
+    <script src="components/buttonFactory.js"></script>
+    <script src="components/keyboard.js"></script>
+    <script src="components/text.js"></script>
+
+    <!-- menu page -->
+    <script src="menu/HomePage.js"></script>
+    <script src="menu/games/GamePage.js"></script>
+    <script src="menu/SelectGamesPage.js"></script>
+    <script src="menu/container.js"></script>
+
+    <!-- speedy game -->
+    <script src="games/container.js"></script>
+    <script src="games/speedy.js"></script>
+
+    <script src="Main.js"></script>
+    <script>
+      function init() {
+        var width = document.getElementById('game-canvas').width;
+        var height = document.getElementById('game-canvas').height;
+
+        main = new Main(width, height);
+      }
+    </script>
+  </body>
+</html>
