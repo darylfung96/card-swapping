@@ -3,9 +3,9 @@
   height:                         the height of the game canvas
   changeContainerCallback:        the callback to change the rendering container from the Main.js
 */
-function SplashScreen(width, height, changeMainContainerCallback) {
+function SplashScreen(width, height, startGameCallback) {
   PIXI.Container.call(this);
-  this.changeMainContainerCallback = changeMainContainerCallback;
+  this.startGameCallback = startGameCallback;
 
   this.screenWidth = width;
   this.screenHeight = height;
@@ -87,7 +87,8 @@ SplashScreen.prototype._initialize = function () {
       fontWeight: 'normal',
       fill: '#fff',
       align: 'left',
-    }
+    },
+    this.startGameCallback
   );
 
   this.addChild(this.title);

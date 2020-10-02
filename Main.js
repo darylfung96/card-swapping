@@ -22,19 +22,14 @@ function Main() {
   this.renderingContainer = new SplashScreen(
     this.width,
     this.height,
-    this.changeMainContainerCallback.bind(this)
+    this.startGameCallback.bind(this)
   );
   requestAnimationFrame(this.update.bind(this));
 }
 
 // this callback is use to change the rendering container
-Main.prototype.changeMainContainerCallback = function (gameName) {
-  // if (this.games[gameName] === undefined) console.log('game not found');
-  // this.renderingContainer = new this.games[gameName](
-  //   this.width,
-  //   this.height,
-  //   this.changeMainContainerCallback.bind(this)
-  // );
+Main.prototype.startGameCallback = function (gameName) {
+  this.renderingContainer = new CardSwap(this.width, this.height);
 };
 
 Main.prototype.update = function () {
