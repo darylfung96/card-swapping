@@ -3,71 +3,97 @@
   height:                         the height of the game canvas
   changeContainerCallback:        the callback to change the rendering container from the Main.js
 */
-function Menu(width, height, changeMainContainerCallback) {
+function SplashScreen(width, height, changeMainContainerCallback) {
   PIXI.Container.call(this);
-
   this.changeMainContainerCallback = changeMainContainerCallback;
 
   this.screenWidth = width;
   this.screenHeight = height;
 
-  this.BUTTON_SPACING = this.screenHeight / 6;
-
-  // make the button on the center of width
-  this.buttonX = this.screenWidth / 2;
-
-  // create the position y for the buttons
-  this.selectGameButtonY = this.screenHeight / 3;
-  this.exitGameButtonY = this.selectGameButtonY + this.BUTTON_SPACING;
-
-  // add background
   this._addBackground();
   this._initialize();
-
-  // show home page first when initializing
-  this._displayHomeMenu();
 }
-Menu.prototype = Object.create(PIXI.Container.prototype);
+SplashScreen.prototype = Object.create(PIXI.Container.prototype);
 
-Menu.prototype._addBackground = function () {
-  this.bg = new PIXI.Sprite.fromImage('resources/bg/brain_bg.jpg');
-  this.bg.alpha = 0.7;
+SplashScreen.prototype._addBackground = function () {
+  this.bg = new PIXI.Sprite.fromImage('resources/bg/blue_bg.png');
+  this.bg.alpha = 1;
   this.bg.width = this.screenWidth;
   this.bg.height = this.screenHeight;
   this.addChild(this.bg);
 };
 
-Menu.prototype._displayHomeMenu = function () {
-  // clear all children
-  // add a check to remove only if more than 1 child, because the 1st child is background
-  if (this.children.length > 1) this.removeChildren(1, this.children.length);
+SplashScreen.prototype._initialize = function () {
+  this.title = new PIXI.Text('How To Play', {
+    fontSize: 18,
+    fill: '#fff',
+    fontWeight: 'bold',
+    align: 'center',
+  });
+  this.title.x = this.screenWidth * 0.05;
+  this.title.y = this.screenHeight * 0.2;
 
-  // add all children for home page
-  for (var child of this.homePage.children) {
-    this.addChild(child);
-  }
-};
+  this.ruleTitle = new PIXI.Text('Rules:', {
+    fontSize: 18,
+    fill: '#fff',
+    fontWeight: 'bold',
+    align: 'center',
+  });
+  this.ruleTitle.x = this.screenWidth * 0.1;
+  this.ruleTitle.y = this.screenHeight * 0.3;
 
-Menu.prototype._displaySelectGamesMenu = function () {
-  // clear all children
-  // add a check to remove only if more than 1 child, because the 1st child is background
-  if (this.children.length > 1) this.removeChildren(1, this.children.length);
-  for (var child of this.selectGamesPage.children) {
-    this.addChild(child);
-  }
-};
-
-Menu.prototype._initialize = function () {
-  this.homePage = new HomePage(
-    this.screenWidth,
-    this.screenHeight,
-    this._displaySelectGamesMenu.bind(this)
+  this.pointsText = new PIXI.Text(
+    '1.	Keep track of the target cards as they get swapped around.\n' +
+      '2.	Select their new location and win.\n' +
+      '3. The more confident you are, the more points you get!\n' +
+      '4. 1.	But, if you are wrong, you lose points.',
+    {
+      fontSize: 18,
+      fontWeight: 'normal',
+      fill: '#fff',
+      align: 'left',
+    }
   );
-  this.selectGamesPage = new SelectGamesPage(
-    this.screenWidth,
-    this.screenHeight,
-    this._displayHomeMenu.bind(this),
-    this._displaySelectGamesMenu.bind(this),
-    this.changeMainContainerCallback
+  this.pointsText.x = this.screenWidth * 0.1;
+  this.pointsText.y = this.screenHeight * 0.35;
+
+  this.movementTitle = new PIXI.Text('Movement:', {
+    fontSize: 18,
+    fill: '#fff',
+    fontWeight: 'bold',
+    align: 'center',
+  });
+  this.movementTitle.x = this.screenWidth * 0.1;
+  this.movementTitle.y = this.screenHeight * 0.5;
+
+  this.movementPointText = new PIXI.Text(
+    '1.	After the cards are swapped, drag and drop your target cards to their new location.',
+    {
+      fontSize: 18,
+      fontWeight: 'normal',
+      fill: '#fff',
+      align: 'left',
+    }
   );
+  this.movementPointText.x = this.screenWidth * 0.1;
+  this.movementPointText.y = this.screenHeight * 0.55;
+
+  this.playText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.8,
+    'Play',
+    {
+      fontSize: 30,
+      fontWeight: 'normal',
+      fill: '#fff',
+      align: 'left',
+    }
+  );
+
+  this.addChild(this.title);
+  this.addChild(this.ruleTitle);
+  this.addChild(this.pointsText);
+  this.addChild(this.movementTitle);
+  this.addChild(this.movementPointText);
+  this.addChild(this.playText);
 };
