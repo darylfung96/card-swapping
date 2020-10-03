@@ -28,7 +28,7 @@ function Main() {
 }
 
 // this callback is use to change the rendering container
-Main.prototype.startGameCallback = function (gameName) {
+Main.prototype.startGameCallback = function () {
   this.renderingContainer = new CardSwap(this.width, this.height);
 };
 

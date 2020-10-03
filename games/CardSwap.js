@@ -4,57 +4,79 @@ function CardSwap(screenWidth, screenHeight) {
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
 
-  this.shapesBackgroundX = this.screenWidth / 2;
-  this.shapesBackgroundY = this.screenHeight / 2;
-  this.shapesBackgroundWidth = this.screenWidth / 2;
-  this.shapesBackgroundHeight = this.screenHeight / 2;
-
-  this.NUM_CHOICES_SHAPES = [2, 3];
-  this.SHAPES_MIN_SIZE = 30;
-  this.SHAPES_MAX_SIZE = 50;
-  this.AVAILABLE_SHAPES = ['square', 'circle', 'triangle'];
-  this.COLORS = [0xf8b195, 0xf67280, 0xc06c84, 0x6c5b7b, 0x355c7d];
-  this.NUM_WRONG_BEFORE_REDUCING_SCORE = 3;
-
-  this.countdown = 3;
-
-  this.previousNumShapes = 0;
-  this.currentNumShapes = 0;
-
-  this.numCorrect = 0;
-  this.consecutiveCorrect = 0;
-  this.wrongAnswerNoConsecutiveCorrect = 0;
-
-  this.currentDrawnShapes = [];
-
   // set the audio
   this.correctAudio = new Audio('resources/audio/correct.mp3');
   this.incorrectAudio = new Audio('resources/audio/incorrect.mp3');
 
+  // has the guessing started? for the mouse movement of the target cards too
+  // preventing the targets card from going into game area during and before swapping of the cards
+  this.isGuessing = false;
+
+  this._createCards(1); // pass in difficulty
   this._initialize();
 }
 CardSwap.prototype = Object.create(GameContainer.prototype);
 
-CardSwap.prototype.endSpeedyGame = function () {
-  this.leftArrow.unsubscribe();
-  this.rightArrow.unsubscribe();
+CardSwap.prototype._createCards = function (difficulty) {
+  this.cardGroup = ['cardHearts', 'cardSpades', 'cardDiamonds', 'cardClubs'];
+  this.cardNumbers = ['9', '10', 'A', 'J', 'K', 'Q'];
+  this.allCardNames = [];
+  for (const currentCardGroup of this.cardGroup) {
+    for (const currentCardNumber of this.cardNumbers) {
+      this.allCardNames.push(`${currentCardGroup}${currentCardNumber}`);
+    }
+  }
 
+  this.fiveCardPositions = [
+    [this.screenWidth * 0.45, this.screenHeight * 0.22],
+    [this.screenWidth * 0.22, this.screenHeight * 0.37],
+    [this.screenWidth * 0.67, this.screenHeight * 0.37],
+    [this.screenWidth * 0.37, this.screenHeight * 0.57],
+    [this.screenWidth * 0.52, this.screenHeight * 0.57],
+  ];
+
+  this.eightCardPositions = [
+    [this.screenWidth * 0.35, this.screenHeight * 0.22],
+    [this.screenWidth * 0.55, this.screenHeight * 0.22],
+    [this.screenWidth * 0.15, this.screenHeight * 0.37],
+    [this.screenWidth * 0.72, this.screenHeight * 0.37],
+    [this.screenWidth * 0.15, this.screenHeight * 0.57],
+    [this.screenWidth * 0.72, this.screenHeight * 0.57],
+    [this.screenWidth * 0.35, this.screenHeight * 0.72],
+    [this.screenWidth * 0.55, this.screenHeight * 0.72],
+  ];
+
+  this.nineCardPositions = [
+    [this.screenWidth * 0.35, this.screenHeight * 0.22],
+    [this.screenWidth * 0.55, this.screenHeight * 0.22],
+    [this.screenWidth * 0.15, this.screenHeight * 0.37],
+    [this.screenWidth * 0.72, this.screenHeight * 0.37],
+    [this.screenWidth * 0.15, this.screenHeight * 0.57],
+    [this.screenWidth * 0.72, this.screenHeight * 0.57],
+    [this.screenWidth * 0.35, this.screenHeight * 0.72],
+    [this.screenWidth * 0.55, this.screenHeight * 0.72],
+    [this.screenWidth * 0.45, this.screenHeight * 0.45],
+  ];
+
+  if (difficulty <= 3) {
+    this.numTargetCards = 2;
+    this.numSwapCards = 5;
+  }
+
+  const cardPositionsKey = {
+    5: this.fiveCardPositions,
+    8: this.eightCardPositions,
+    9: this.nineCardPositions,
+  };
+  this.cardPositions = cardPositionsKey[this.numSwapCards];
+};
+
+CardSwap.prototype.endSpeedyGame = function () {
   if (this.startCountdown) {
     clearInterval(this.startCountdown);
   }
 
   this._drawEndMenu();
-};
-
-CardSwap.prototype._checkIntersection = function (a, b) {
-  var ab = a.getBounds();
-  var bb = b.getBounds();
-  return (
-    ab.x + ab.width > bb.x &&
-    ab.x < bb.x + bb.width &&
-    ab.y + ab.height > bb.y &&
-    ab.y < bb.y + bb.height
-  );
 };
 
 CardSwap.prototype._drawEndMenu = function () {
@@ -86,7 +108,6 @@ CardSwap.prototype._drawEndMenu = function () {
 
   const refreshCallback = () => {
     this.removeChildren(0, this.children.length);
-    this._initializeContainer();
     this._initialize();
   };
 
@@ -119,253 +140,172 @@ CardSwap.prototype._drawEndMenu = function () {
   this.addChild(this.endButton);
 };
 
+CardSwap.prototype._startSwapping = function () {};
+
+CardSwap.prototype._flipSwapCards = function () {
+  for (const currentSwapCard of this.allSwapCards) {
+    currentSwapCard.flipCard();
+  }
+};
+/********************** Initialization ***********************/
 CardSwap.prototype._createBackground = function () {
+  // create background
   var bg = new PIXI.Sprite.fromImage('resources/bg/wooden.jpeg');
-  bg.alpha = 0.9;
+  bg.alpha = 1;
   bg.width = this.screenWidth;
   bg.height = this.screenHeight;
   this.addChild(bg);
+
+  // create top panel
+  var topPanel = new PIXI.Sprite.fromImage('resources/bg/red_bg.png');
+  topPanel.alpha = 1;
+  topPanel.width = this.screenWidth;
+  topPanel.height = this.screenHeight * 0.1;
+
+  this.addChild(topPanel);
+
+  // create side panel
+  var sidePanel = new PIXI.Sprite.fromImage('resources/bg/orange_bg.png');
+  sidePanel.alpha = 1;
+  sidePanel.width = this.screenWidth * 0.2;
+  sidePanel.height = this.screenHeight;
+  sidePanel.x = this.screenWidth * 0.8;
+  sidePanel.y = this.screenHeight * 0.1;
+
+  this.addChild(sidePanel);
 };
-
-CardSwap.prototype._addScore = function () {
-  if (this.consecutiveCorrect <= 5) {
-    this.score += 50;
-  } else if (this.consecutiveCorrect > 5) {
-    this.score += 80;
-  } else if (this.consecutiveCorrect > 10) {
-    this.score += 150;
-  } else if (this.consecutiveCorrect > 15) {
-    this.score += 300;
-  }
-  this._createScoreText();
-};
-
-CardSwap.prototype._createKeyboardInput = function () {
-  this.leftArrow = keyboard('ArrowLeft');
-  this.rightArrow = keyboard('ArrowRight');
-
-  this.leftArrow.release = () => {
-    if (this.previousNumShapes != this.currentNumShapes) {
-      this.numCorrect++;
-      this.consecutiveCorrect++;
-      this.correctAudio.play();
-      this._addScore();
-
-      // resets the reducing points if user score more than 5 consecutive correct
-      if (this.consecutiveCorrect >= 5) {
-        this.wrongAnswerNoConsecutiveCorrect = 0;
-      }
-    } else {
-      // attempt to reduce score if user get wrong answer more than NUM_WRONG_BEFORE_REDUCING_SCORE without getting 3 consecutive corrects.
-      // If the user obtained a wrong answer without getting at least 3 correct answers
-      // consecutively for more than 3 times, then the user would lose 100 points for every wrong answer.
-      // This will get reset when the user obtained at 5 correct answers consecutively.
-      if (this.consecutiveCorrect <= this.NUM_WRONG_BEFORE_REDUCING_SCORE) {
-        this.wrongAnswerNoConsecutiveCorrect++;
-        if (
-          this.wrongAnswerNoConsecutiveCorrect >
-          this.NUM_WRONG_BEFORE_REDUCING_SCORE
-        ) {
-          this.score -= 100;
-        }
-      }
-
-      this.consecutiveCorrect = 0;
-      this.incorrectAudio.play();
-    }
-
-    this._createNextShapes();
-  };
-
-  this.rightArrow.release = () => {
-    if (this.previousNumShapes == this.currentNumShapes) {
-      this.numCorrect++;
-      this.consecutiveCorrect++;
-      this.correctAudio.play();
-      this._addScore();
-
-      // resets the reducing points if user score more than 5 consecutive correct
-      if (this.consecutiveCorrect >= 5) {
-        this.wrongAnswerNoConsecutiveCorrect = 0;
-      }
-    } else {
-      // attempt to reduce score if user get wrong answer more than NUM_WRONG_BEFORE_REDUCING_SCORE without getting 3 consecutive corrects.
-      // If the user obtained a wrong answer without getting at least 3 correct answers
-      // consecutively for more than 3 times, then the user would lose 100 points for every wrong answer.
-      // This will get reset when the user obtained at 5 correct answers consecutively.
-      if (this.consecutiveCorrect <= this.NUM_WRONG_BEFORE_REDUCING_SCORE) {
-        this.wrongAnswerNoConsecutiveCorrect++;
-        if (
-          this.wrongAnswerNoConsecutiveCorrect >
-          this.NUM_WRONG_BEFORE_REDUCING_SCORE
-        ) {
-          this.score -= 100;
-        }
-      }
-
-      this.consecutiveCorrect = 0;
-      this.incorrectAudio.play();
-    }
-
-    this._createNextShapes();
-  };
-};
-
-CardSwap.prototype._createShapesBg = function () {
-  const shapesBackground = new PIXI.Sprite.fromImage(
-    'resources/bg/white_bg.jpg'
-  );
-  shapesBackground.position.x = this.shapesBackgroundX;
-  shapesBackground.position.y = this.shapesBackgroundY;
-  shapesBackground.anchor.set(0.5);
-  shapesBackground.width = this.shapesBackgroundWidth;
-  shapesBackground.height = this.shapesBackgroundWidth;
-  this.addChild(shapesBackground);
-};
-
-// shapeValue can be 'triangle', 'square', 'circle', 'rectangle'
-CardSwap.prototype._createShape = function (
-  shapeValue,
-  x,
-  y,
-  width,
-  height,
-  color
-) {
-  const shapeFunc = {
-    square: () => {
-      const graphics = new PIXI.Graphics();
-      graphics.lineStyle(2, 0x000000, 1);
-      graphics.beginFill(color);
-      graphics.drawRect(x, y, width, height);
-      return graphics;
-    },
-    circle: () => {
-      const graphics = new PIXI.Graphics();
-      graphics.lineStyle(2, 0x000000, 1);
-      graphics.beginFill(color);
-      graphics.drawCircle(x + width, y + height, width, height);
-      return graphics;
-    },
-    triangle: () => {
-      const graphics = this._createTriangle(x, y, width, color);
-      return graphics;
-    },
-  };
-
-  const shapeCreated = shapeFunc[shapeValue]();
-  return shapeCreated;
-};
-
-CardSwap.prototype._createNextShapes = function () {
-  this.previousNumShapes = this.currentDrawnShapes.length;
-  for (const currentDrawnShape of this.currentDrawnShapes) {
-    this.removeChild(currentDrawnShape);
-  }
-  this.currentDrawnShapes = [];
-
-  this.currentNumShapes = this.NUM_CHOICES_SHAPES[
-    Math.floor(Math.random() * this.NUM_CHOICES_SHAPES.length)
-  ];
-
-  const currentColorIndex = Math.floor(Math.random() * this.COLORS.length);
-  const color = this.COLORS[currentColorIndex];
-  let createdShapes = [];
-
-  for (var i = 0; i < this.currentNumShapes; i++) {
-    const shapeSize = Math.max(
-      this.SHAPES_MIN_SIZE,
-      Math.floor(Math.random() * this.SHAPES_MAX_SIZE)
-    );
-    const shapeValue = this.AVAILABLE_SHAPES[
-      Math.floor(Math.random() * this.AVAILABLE_SHAPES.length)
+CardSwap.prototype._createSwapCards = function () {
+  // create cards
+  for (let i = 0; i < this.numSwapCards; i++) {
+    // choose random card
+    const cardName = this.allCardNames[
+      Math.floor(Math.random() * this.allCardNames.length)
     ];
-    let isIntersect = false; // variable to check if it intersects with created shapes
+    this.allCardNames.splice(this.allCardNames.indexOf(cardName), 1); // remove card, must be unique on the table
 
-    // create while loop to re-add shapes in case it intersect with other shapes.
-    let loopIteration = 0; // check how many times have looped, if more than 10 just create the shape.
-    while (true) {
-      const x =
-        this.shapesBackgroundX -
-        this.shapesBackgroundWidth / 2 +
-        Math.floor(
-          Math.random() * (this.shapesBackgroundWidth - shapeSize * 2)
-        );
-      const y =
-        this.shapesBackgroundY -
-        this.shapesBackgroundHeight / 2 +
-        Math.floor(
-          Math.random() * (this.shapesBackgroundHeight - shapeSize * 2)
-        );
+    // generate card sprite
+    this.cardSprite = new Card(`resources/Cards/${cardName}.png`);
+    this.cardSprite.scale.set(0.6);
+    this.cardSprite.x = this.cardPositions[i][0];
+    this.cardSprite.y = this.cardPositions[i][1];
+    this.cardSprite.anchor.set(0.5);
+    this.addChild(this.cardSprite);
 
-      const currentShape = this._createShape(
-        shapeValue,
-        x,
-        y,
-        shapeSize,
-        shapeSize,
-        color
+    // keep track of the swap cards
+    this.allSwapCards.push(this.cardSprite);
+  }
+};
+CardSwap.prototype._generateTargetCards = function () {
+  // randomly select the swap card as target card
+  let totalTargets = 0;
+  while (totalTargets < this.numTargetCards) {
+    const currentIndex = Math.floor(Math.random() * this.allSwapCards.length);
+    if (!this.allSwapCards[currentIndex].isTarget) {
+      this.allSwapCards[currentIndex].isTarget = true;
+      totalTargets++;
+    }
+  }
+};
+CardSwap.prototype._createTargetCards = function () {
+  // add the target cards to the side panel
+  targetCardMouseDown = function (event) {
+    // store a reference to the data
+    // the reason for this is because of multitouch
+    // we want to track the movement of this particular touch
+    this.mouseData = event.data;
+    this.dragging = true;
+    this.setLastLocation(this.x, this.y);
+  };
+
+  targetCardMouseUp = function () {
+    this.alpha = 1;
+    this.dragging = false;
+    // set the interaction data to null
+    this.mouseData = null;
+  };
+
+  targetCardMouseMove = function (screenWidth, screenHeight, isGuessing) {
+    if (this.dragging) {
+      var newPosition = this.mouseData.getLocalPosition(this.parent);
+
+      // prevent the target card from going into the game area
+      if (!isGuessing) {
+        newPosition.x = Math.max(
+          screenWidth * 0.8 + this.width * 0.5,
+          newPosition.x
+        );
+      }
+
+      newPosition.y = Math.max(
+        screenHeight * 0.1 + this.height * 0.5,
+        newPosition.y
       );
 
-      // make sure the created shapes do not intersect each other
-      for (const createdShape of createdShapes) {
-        if (this._checkIntersection(createdShape, currentShape)) {
-          isIntersect = true;
-          break;
-        }
-      } // end for
-      if (!isIntersect) {
-        this.currentDrawnShapes.push(currentShape);
-        this.addChild(currentShape);
-        createdShapes.push(currentShape);
-        break;
-      }
-      loopIteration++;
-
-      // if have loop too much, just create the shape
-      if (loopIteration > 10) {
-        this.currentDrawnShapes.push(currentShape);
-        this.addChild(currentShape);
-        createdShapes.push(currentShape);
-        break;
-      }
-    } // end while
+      this.setLocation(newPosition.x, newPosition.y);
+    }
+  };
+  let targetX = this.screenWidth * 0.84;
+  let targetY = this.screenHeight * 0.17;
+  const CARDS_PER_ROW = 2;
+  let currentTargetCardIndex = 0;
+  for (const swapCard of this.allSwapCards) {
+    if (swapCard.isTarget) {
+      const targetCard = new TargetCard(swapCard.imageLocation);
+      //mouse down
+      targetCard
+        .on('mousedown', targetCardMouseDown)
+        .on('touchstart', targetCardMouseDown)
+        // mouse up
+        .on('mouseup', targetCardMouseUp)
+        .on('mouseupoutside', targetCardMouseUp)
+        .on('touchend', targetCardMouseUp)
+        .on('touchendoutside', targetCardMouseUp)
+        // mouse move
+        .on(
+          'mousemove',
+          targetCardMouseMove.bind(
+            targetCard,
+            this.screenWidth,
+            this.screenHeight,
+            this.isGuessing
+          )
+        )
+        .on(
+          'touchmove',
+          targetCardMouseMove.bind(
+            targetCard,
+            this.screenWidth,
+            this.screenHeight,
+            this.isGuessing
+          )
+        );
+      console.log(targetCard);
+      targetCard.scale.set(0.35);
+      targetCard.anchor.set(0.5);
+      targetCard.interactive = true;
+      targetCard.buttonMode = true;
+      targetCard.setLocation(
+        targetX + (currentTargetCardIndex % 2) * (this.screenWidth * 0.1),
+        targetY +
+          Math.floor(currentTargetCardIndex / 2) * (this.screenHeight * 0.1)
+      );
+      this.allTargetCards.push(targetCard);
+      this.addChild(targetCard);
+      currentTargetCardIndex++;
+    }
   }
 };
+CardSwap.prototype._initializeCards = function () {
+  this.allSwapCards = [];
+  this.allTargetCards = [];
 
-CardSwap.prototype._createTriangle = function (xPos, yPos, width, color) {
-  var triangle = new PIXI.Graphics();
-
-  triangle.x = xPos;
-  triangle.y = yPos;
-
-  var triangleWidth = width,
-    triangleHeight = triangleWidth,
-    triangleHalfway = triangleWidth / 2;
-
-  // draw triangle
-  triangle.beginFill(color, 1);
-  triangle.lineStyle(2, 0x000000, 1);
-  triangle.moveTo(triangleWidth, 0);
-  triangle.lineTo(triangleHalfway, triangleHeight);
-  triangle.lineTo(0, 0);
-  triangle.lineTo(triangleHalfway, 0);
-  triangle.lineTo(triangleWidth, 0);
-  triangle.endFill();
-
-  return triangle;
+  this._createSwapCards();
+  this._generateTargetCards();
+  this._createTargetCards();
 };
-
-CardSwap.prototype.startGame = function () {
-  this._createKeyboardInput();
-  this._createNextShapes();
-  this._createTimeTicking(this.endSpeedyGame.bind(this));
-};
-
 CardSwap.prototype._initialize = function () {
   this._createBackground();
-  this._createShapesBg();
-  this._createNextShapes();
   this._createScoreText();
-  this._createStartingCountdown(this.startGame.bind(this));
+  this._initializeCards();
+  this._createCountdown(1, this._flipSwapCards.bind(this));
 };

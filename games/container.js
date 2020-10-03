@@ -8,8 +8,6 @@ function GameContainer(screenWidth, screenHeight) {
 
   this.score = 0;
   this.scoreText = false;
-
-  this._initializeContainer();
 }
 GameContainer.prototype = Object.create(PIXI.Container.prototype);
 
@@ -53,18 +51,22 @@ GameContainer.prototype._createTimeTicking = function (endFunction) {
 /*
 startGameCallback is a callback to trigger drawing of the game graphics
 */
-GameContainer.prototype._createStartingCountdown = function (
-  startGameCallback
+GameContainer.prototype._createCountdown = function (
+  startingCountdownTime,
+  endCountdownCallback
 ) {
-  this.countdownValue = 3;
+  let countdownValue = startingCountdownTime;
+
   const countdownSound = new Audio('resources/audio/countdown.mp3');
   const countdownEndSound = new Audio('resources/audio/countdown_end.mp3');
 
-  const fontStyle = { align: 'center', fill: '#000000', fontSize: 50 };
-  this.countdownText = new PIXI.Text(this.countdownValue.toString(), fontStyle);
-  this.countdownText.x = this.screenWidth / 2;
-  this.countdownText.y = this.screenHeight / 2;
-  this.countdownText.anchor.set(0.5);
+  const fontStyle = { align: 'center', fill: '#fff', fontSize: 20 };
+  this.countdownText = new PIXI.Text(
+    'Timer: ' + countdownValue.toString(),
+    fontStyle
+  );
+  this.countdownText.x = this.screenWidth * 0.8;
+  this.countdownText.y = this.screenHeight * 0.03;
 
   this.startCountdown = setInterval(() => {
     // don't countdown if paused
@@ -72,25 +74,24 @@ GameContainer.prototype._createStartingCountdown = function (
 
     this.removeChild(this.countdownText);
     this.countdownText = new PIXI.Text(
-      this.countdownValue.toString(),
+      'Timer: ' + countdownValue.toString(),
       fontStyle
     );
-    this.countdownText.x = this.screenWidth / 2;
-    this.countdownText.y = this.screenHeight / 2;
-    this.countdownText.anchor.set(0.5);
+    this.countdownText.x = this.screenWidth * 0.8;
+    this.countdownText.y = this.screenHeight * 0.03;
 
     this.addChild(this.countdownText);
 
-    if (this.countdownValue != 0) countdownSound.play();
+    if (countdownValue != 0) countdownSound.play();
     else countdownEndSound.play();
 
-    if (this.countdownValue == 0) {
+    if (countdownValue == 0) {
       clearInterval(this.startCountdown);
       this.startCountdown = false;
       this.removeChild(this.countdownText);
-      startGameCallback();
+      endCountdownCallback();
     }
-    this.countdownValue--;
+    countdownValue--;
   }, 1000);
 };
 
@@ -101,9 +102,7 @@ GameContainer.prototype._createScoreText = function () {
 
   const textStyle = { align: 'center', fill: '#ffffff', fontSize: 20 };
   this.scoreText = new PIXI.Text(`Score: ${this.score}`, textStyle);
-  this.scoreText.x = this.screenWidth * 0.1;
-  this.scoreText.y = this.screenHeight * 0.1;
+  this.scoreText.x = this.screenWidth * 0.05;
+  this.scoreText.y = this.screenHeight * 0.03;
   this.addChild(this.scoreText);
 };
-
-GameContainer.prototype._initializeContainer = function () {};
