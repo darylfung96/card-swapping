@@ -213,7 +213,6 @@ CardSwap.prototype._swapOnce = function () {
   }
 };
 CardSwap.prototype._startSwapping = function () {
-  console.log('start swapping');
   this.isAllSwappingDone = false;
 
   // swap only for 20 seconds
@@ -221,14 +220,28 @@ CardSwap.prototype._startSwapping = function () {
   const setAllSwappingDone = function () {
     this.isAllSwappingDone = true;
   };
-  this._createCountdown(20, setAllSwappingDone.bind(this));
+  this._createCountdown(2, setAllSwappingDone.bind(this));
   this._swapOnce();
 
   // poll to make sure swapping is complete before calling more swapping cards
   const self = this;
   const pollSwapping = setInterval(() => {
-    if (self.cardsDoneSwapping === self.numCardsToSwapNow) self._swapOnce();
-    if (self.isAllSwappingDone) clearInterval(pollSwapping);
+    if (self.cardsDoneSwapping === self.numCardsToSwapNow) {
+      if (!self.isAllSwappingDone) self._swapOnce();
+      else {
+        clearInterval(pollSwapping);
+        // show the guessing icon for each swap card
+        for (const swapCard of self.allSwapCards) {
+          swapCard.showGuessing(this);
+        }
+
+        // move the target card up to the front
+        for (const currentTargetCard of this.allTargetCards) {
+          this.removeChild(currentTargetCard);
+          this.addChild(currentTargetCard);
+        }
+      }
+    }
   }, 100);
 };
 
@@ -246,6 +259,67 @@ CardSwap.prototype._flipSwapCards = function () {
       self._startSwapping();
     }
   }, 1000);
+};
+
+CardSwap.prototype._drawModalConfident = function () {
+  this.modalBackground = PIXI.Sprite.fromImage('resources/bg/blue_bg.png');
+  this.modalBackground.x = this.screenWidth * 0.5;
+  this.modalBackground.y = this.screenHeight * 0.5;
+  this.modalBackground.width = this.screenWidth * 0.8;
+  this.modalBackground.height = this.screenHeight * 0.5;
+  this.modalBackground.anchor.set(0.5);
+
+  this.modalText = new PIXI.Text(
+    'How confident are you that the card is here?',
+    { fill: '#fff', fontSize: 20 }
+  );
+  this.modalText.x = this.screenWidth * 0.5;
+  this.modalText.y = this.screenHeight * 0.3;
+  this.modalText.anchor.set(0.5);
+
+  this.notConfidentText = PIXI.Sprite.fromImage(
+    'resources/buttons/button_not-confident.png'
+  );
+  this.notConfidentText.x = this.screenWidth * 0.25;
+  this.notConfidentText.y = this.screenHeight * 0.5;
+  this.notConfidentText.width = this.screenWidth * 0.2;
+  this.notConfidentText.height = this.screenHeight * 0.08;
+  this.notConfidentText.anchor.set(0.5);
+  this.notConfidentText.interactive = true;
+  this.notConfidentText.buttonMode = true;
+
+  this.somewhatConfidentText = PIXI.Sprite.fromImage(
+    'resources/buttons/button_somewhat-confident.png'
+  );
+  this.somewhatConfidentText.x = this.screenWidth * 0.5;
+  this.somewhatConfidentText.y = this.screenHeight * 0.5;
+  this.somewhatConfidentText.width = this.screenWidth * 0.2;
+  this.somewhatConfidentText.height = this.screenHeight * 0.08;
+  this.somewhatConfidentText.anchor.set(0.5);
+  this.somewhatConfidentText.interactive = true;
+  this.somewhatConfidentText.buttonMode = true;
+
+  this.veryConfidentText = PIXI.Sprite.fromImage(
+    'resources/buttons/button_very-confident.png'
+  );
+  this.veryConfidentText.x = this.screenWidth * 0.75;
+  this.veryConfidentText.y = this.screenHeight * 0.5;
+  this.veryConfidentText.width = this.screenWidth * 0.2;
+  this.veryConfidentText.height = this.screenHeight * 0.08;
+  this.veryConfidentText.anchor.set(0.5);
+  this.veryConfidentText.interactive = true;
+  this.veryConfidentText.buttonMode = true;
+
+  this.addChild(this.modalBackground);
+  this.addChild(this.modalText);
+  this.addChild(this.notConfidentText);
+  this.addChild(this.somewhatConfidentText);
+  this.addChild(this.veryConfidentText);
+};
+
+CardSwap.prototype._removeModalConfident = function () {
+  this.remooveChild(this.modalBackground);
+  this.removeChild(this.modalText);
 };
 
 /********************** Initialization ***********************/
@@ -318,15 +392,36 @@ CardSwap.prototype._createTargetCards = function () {
     this.setLastLocation(this.x, this.y);
   };
 
-  targetCardMouseUp = function (screenWidth) {
+  targetCardMouseUp = function (self) {
     this.alpha = 1;
     this.dragging = false;
     // set the interaction data to null
     this.mouseData = null;
 
+    // check if the targetCard is dropped into the guessingLocation
+    let isPlacedIntoGuessing = false;
+    if (self.isAllSwappingDone) {
+      for (const currentSwapCard of self.allSwapCards) {
+        // if placed inside the guessing sprite
+        console.log(Math.abs(this.x - currentSwapCard.guessingSprite.x));
+        console.log(Math.abs(this.y - currentSwapCard.guessingSprite.y));
+        if (
+          Math.abs(this.x - currentSwapCard.guessingSprite.x) < 5 &&
+          Math.abs(this.y - currentSwapCard.guessingSprite.y) < 5
+        ) {
+          this.x = currentSwapCard.guessingSprite.x;
+          this.y = currentSwapCard.guessingSprite.y;
+          isPlacedIntoGuessing = true;
+          break;
+        }
+      }
+    }
+
     // if card not in side panel then we move back to its last location
-    if (this.x < screenWidth * 0.8 + this.width * 0.5) {
-      this.setLocation(this.lastXposition, this.lastYposition);
+    if (!isPlacedIntoGuessing) {
+      if (this.x < self.screenWidth * 0.8 + this.width * 0.5) {
+        this.setLocation(this.lastXposition, this.lastYposition);
+      }
     }
   };
 
@@ -362,16 +457,10 @@ CardSwap.prototype._createTargetCards = function () {
         .on('mousedown', targetCardMouseDown)
         .on('touchstart', targetCardMouseDown)
         // mouse up
-        .on('mouseup', targetCardMouseUp.bind(targetCard, this.screenWidth))
-        .on(
-          'mouseupoutside',
-          targetCardMouseUp.bind(targetCard, this.screenWidth)
-        )
-        .on('touchend', targetCardMouseUp.bind(targetCard, this.screenWidth))
-        .on(
-          'touchendoutside',
-          targetCardMouseUp.bind(targetCard, this.screenWidth)
-        )
+        .on('mouseup', targetCardMouseUp.bind(targetCard, this))
+        .on('mouseupoutside', targetCardMouseUp.bind(targetCard, this))
+        .on('touchend', targetCardMouseUp.bind(targetCard, this))
+        .on('touchendoutside', targetCardMouseUp.bind(targetCard, this))
         // mouse move
         .on('mousemove', targetCardMouseMove.bind(targetCard, this))
         .on('touchmove', targetCardMouseMove.bind(targetCard, this));
@@ -400,7 +489,8 @@ CardSwap.prototype._initializeCards = function () {
 };
 CardSwap.prototype._initialize = function () {
   this._createBackground();
-  this._createScoreText();
-  this._initializeCards();
-  this._createCountdown(1, this._flipSwapCards.bind(this));
+  this._drawModalConfident();
+  // this._createScoreText();
+  // this._initializeCards();
+  // this._createCountdown(1, this._flipSwapCards.bind(this));
 };

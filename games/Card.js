@@ -1,8 +1,10 @@
 function Card(imageLocation) {
   const imageTexture = PIXI.Texture.fromImage(imageLocation);
   this.isTarget = false;
+  this.isGuessingTime = false;
   this.imageLocation = imageLocation;
   this.backImageLocation = 'resources/Cards/CardBack_blue5.png';
+  this.guessImageLocation = 'resources/Cards/card-guessing.png';
 
   // isFront, it will show the front of the card and not the back of the card
   this.isFront = true;
@@ -16,6 +18,16 @@ Card.prototype.setTarget = function (isTarget) {
 };
 Card.prototype.isTarget = function () {
   return this.isTarget;
+};
+
+Card.prototype.showGuessing = function (cardSwapContainer) {
+  this.guessingSprite = PIXI.Sprite.fromImage(this.guessImageLocation);
+  this.guessingSprite.x = this.x - this.width * 0.5;
+  this.guessingSprite.y = this.y - this.height * 0.5;
+  this.guessingSprite.anchor.set(0.5);
+  this.guessingSprite.scale.set(0.35);
+  this.isGuessing = true;
+  cardSwapContainer.addChild(this.guessingSprite);
 };
 
 // isFlipping is the boolean variable passed from the cardSwap container, to let cardSwapContainer
