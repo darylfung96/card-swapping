@@ -67,6 +67,7 @@ GameContainer.prototype._createCountdown = function (
   );
   this.countdownText.x = this.screenWidth * 0.8;
   this.countdownText.y = this.screenHeight * 0.03;
+  this.addChild(this.countdownText);
 
   this.startCountdown = setInterval(() => {
     // don't countdown if paused

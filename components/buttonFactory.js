@@ -54,6 +54,7 @@ function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
   var button = new PIXI.Text(text, textStyle);
   //
   button.interactive = true;
+  button.buttonMode = true;
   button.x = x;
   button.y = y;
   button.anchor.set(0.5);
@@ -108,6 +109,7 @@ function ButtonFactory(x, y, width, height, buttonSprite, clickCallback) {
   button.width = width;
   button.height = height;
   button.interactive = true;
+  button.buttonMode = true;
 
   var mouseDown = function () {
     this.width -= 10;
