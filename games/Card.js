@@ -56,7 +56,7 @@ Card.prototype.flipCard = function (cardSwapContainer) {
         clearInterval(startFlipOpenInterval);
         this.width = originalWidth;
         cardSwapContainer.isFlipping = false;
-        self.isFront = false;
+        self.isFront = !self.isFront;
       }
     }, 10);
   }
@@ -95,6 +95,8 @@ function TargetCard(imageLocation) {
   this.imageLocation = imageLocation;
   this.lastXposition = 0;
   this.lastYposition = 0;
+  this.guessedScore = 0;
+  this.scoreSprite = null;
   PIXI.Sprite.call(this, imageTexture);
 }
 TargetCard.prototype = Object.create(PIXI.Sprite.prototype);
@@ -112,4 +114,14 @@ TargetCard.prototype.setLocation = function (newX, newY) {
 TargetCard.prototype.setLastLocation = function (lastX, lastY) {
   this.lastXposition = lastX;
   this.lastYposition = lastY;
+};
+TargetCard.prototype.setGuessScore = function (score) {
+  this.guessedScore = score;
+  this.scoreSprite = new PIXI.Text(score.toString(), {
+    fill: '#fff',
+    fontSize: 25,
+  });
+  this.scoreSprite.x = this.x - this.width;
+  this.scoreSprite.y = this.y;
+  this.scoreSprite.anchor.set(0.5);
 };

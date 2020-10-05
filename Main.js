@@ -27,9 +27,25 @@ function Main() {
   requestAnimationFrame(this.update.bind(this));
 }
 
+function getUrlParameter(name) {
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  var results = regex.exec(location.search);
+  return results === null
+    ? ''
+    : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
 // this callback is use to change the rendering container
 Main.prototype.startGameCallback = function () {
-  this.renderingContainer = new CardSwap(this.width, this.height);
+  const difficulty = parseInt(getUrlParameter('difficulty'));
+  const seed = parseInt(getUrlParameter('seed'));
+  this.renderingContainer = new CardSwap(
+    this.width,
+    this.height,
+    difficulty,
+    seed
+  );
 };
 
 Main.prototype.update = function () {

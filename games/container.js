@@ -83,10 +83,10 @@ GameContainer.prototype._createCountdown = function (
 
     this.addChild(this.countdownText);
 
-    if (countdownValue != 0) countdownSound.play();
+    if (countdownValue > 0) countdownSound.play();
     else countdownEndSound.play();
 
-    if (countdownValue == 0) {
+    if (countdownValue <= 0) {
       clearInterval(this.startCountdown);
       this.startCountdown = false;
       this.removeChild(this.countdownText);
