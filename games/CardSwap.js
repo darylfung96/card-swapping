@@ -222,7 +222,7 @@ CardSwap.prototype._swapAll = function (numberOfTimes) {
     if (self.cardsDoneSwapping >= 0) {
       clearInterval(swapAllInterval);
     }
-  }, 1000);
+  }, 500);
 };
 
 CardSwap.prototype._swapOnce = function () {
