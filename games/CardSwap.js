@@ -20,6 +20,7 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed) {
   // {targetCard: [swapCard, score]}
   this.guessedTargetCards = {};
 
+  this.rotateAllCard = 0; // is there a chance that all swap cards rotate to left/right? on difficulty 3 this is enabled
   this.difficulty = difficulty;
   this.seed = seed;
   Math.seedrandom(seed);
@@ -226,9 +227,9 @@ CardSwap.prototype._swapAll = function (numberOfTimes) {
 
 CardSwap.prototype._swapOnce = function () {
   // rotate all cards
-  if (Math.random() > 0.7) {
+  if (Math.random() > 0.8 && this.rotateAllCard > 0) {
     this.numCardsToSwapNow = this.allSwapCards.length;
-    this._swapAll(1);
+    this._swapAll(this.rotateAllCard);
     return;
   }
 
@@ -266,9 +267,6 @@ CardSwap.prototype._swapOnce = function () {
   // Array.from(Array(selectedCards.length).keys()) create [0, 1, 2, 3, ...]
   const shuffledIndex = shuffle(Array.from(Array(selectedCards.length).keys())); // shuffle the selected card index, so we prepare to swap the card
   let selectedCardsLocation = []; // keep track of the selected cards location then we swap the cards
-  console.log(selectedCardsIndex); //4,0
-
-  console.log('before', this.allSwapCards);
   for (let index = 0; index < selectedCardsIndex.length; index++) {
     const currentPosition = selectedCardsIndex[index]; //4
     const nextPosition = shuffledIndex[index]; //0
@@ -280,7 +278,6 @@ CardSwap.prototype._swapOnce = function () {
     // change the position in the this.allSwapCards since our swapAll(Rotate all to next slot) utilizes the index of this.allSwapCards
     this.allSwapCards[currentPosition] = selectedCards[nextPosition];
   }
-  console.log('after', this.allSwapCards);
   // swap the card location
   this.numCardsToSwapNow = selectedCardsLocation.length;
   this.cardsDoneSwapping = 0;
@@ -324,7 +321,7 @@ CardSwap.prototype._startSwapping = function () {
         }
       }
     }
-  }, 200);
+  }, 500);
 };
 
 CardSwap.prototype._flipSwapCards = function () {
@@ -718,5 +715,5 @@ CardSwap.prototype._initialize = function () {
   // this._drawModalConfident();
   this._createScoreText();
   this._initializeCards();
-  this._createCountdown(0, this._flipSwapCards.bind(this));
+  this._createCountdown(10, this._flipSwapCards.bind(this));
 };
