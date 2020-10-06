@@ -628,8 +628,8 @@ CardSwap.prototype._createTargetCards = function () {
       for (const currentSwapCard of self.allSwapCards) {
         // if placed inside the guessing sprite
         if (
-          Math.abs(this.x - currentSwapCard.guessingSprite.x) < 10 &&
-          Math.abs(this.y - currentSwapCard.guessingSprite.y) < 10
+          Math.abs(this.x - currentSwapCard.guessingSprite.x) < 30 &&
+          Math.abs(this.y - currentSwapCard.guessingSprite.y) < 30
         ) {
           this.x = currentSwapCard.guessingSprite.x;
           this.y = currentSwapCard.guessingSprite.y;
