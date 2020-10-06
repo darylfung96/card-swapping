@@ -385,7 +385,7 @@ CardSwap.prototype._drawModalConfident = function (
   this.notConfidentText.buttonMode = true;
   this.notConfidentText
     .on('mousedown', guessCardScore.bind(this.notConfidentText, this, 1))
-    .on('touchdown', guessCardScore.bind(this.notConfidentText, this, 1));
+    .on('touchstart', guessCardScore.bind(this.notConfidentText, this, 1));
 
   this.somewhatConfidentText = PIXI.Sprite.fromImage(
     'resources/buttons/button_somewhat-confident.png'
@@ -399,7 +399,7 @@ CardSwap.prototype._drawModalConfident = function (
   this.somewhatConfidentText.buttonMode = true;
   this.somewhatConfidentText
     .on('mousedown', guessCardScore.bind(this.somewhatConfidentText, this, 2))
-    .on('touchdown', guessCardScore.bind(this.somewhatConfidentText, this, 2));
+    .on('touchstart', guessCardScore.bind(this.somewhatConfidentText, this, 2));
 
   this.veryConfidentText = PIXI.Sprite.fromImage(
     'resources/buttons/button_very-confident.png'
@@ -413,7 +413,7 @@ CardSwap.prototype._drawModalConfident = function (
   this.veryConfidentText.buttonMode = true;
   this.veryConfidentText
     .on('mousedown', guessCardScore.bind(this.veryConfidentText, this, 3))
-    .on('touchdown', guessCardScore.bind(this.veryConfidentText, this, 3));
+    .on('touchstart', guessCardScore.bind(this.veryConfidentText, this, 3));
 
   const cancelGuessingModal = function () {
     guessedTargetCard.setLocation(
@@ -433,7 +433,7 @@ CardSwap.prototype._drawModalConfident = function (
   this.cancelText.buttonMode = true;
   this.cancelText
     .on('mousedown', cancelGuessingModal.bind(this))
-    .on('touchdown', cancelGuessingModal.bind(this));
+    .on('touchstart', cancelGuessingModal.bind(this));
 
   this.addChild(this.modalBackground);
   this.addChild(this.modalText);

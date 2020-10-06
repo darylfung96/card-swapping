@@ -46,7 +46,7 @@ SplashScreen.prototype._initialize = function () {
     '1.	Keep track of the target cards as they get swapped around.\n' +
       '2.	Select their new location and win.\n' +
       '3. The more confident you are, the more points you get!\n' +
-      '4. 1.	But, if you are wrong, you lose points.',
+      '4. But, if you are wrong, you lose points.',
     {
       fontSize: 18,
       fontWeight: 'normal',

@@ -3,7 +3,7 @@ function Card(imageLocation) {
   this.isTarget = false;
   this.isGuessingTime = false;
   this.imageLocation = imageLocation;
-  this.backImageLocation = 'resources/Cards/CardBack_blue5.png';
+  this.backImageLocation = 'resources/Cards/cardBack_blue5.png';
   this.guessImageLocation = 'resources/Cards/card-guessing.png';
 
   // isFront, it will show the front of the card and not the back of the card
