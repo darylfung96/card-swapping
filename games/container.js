@@ -57,9 +57,6 @@ GameContainer.prototype._createCountdown = function (
 ) {
   let countdownValue = startingCountdownTime;
 
-  const countdownSound = new Audio('resources/audio/countdown.mp3');
-  const countdownEndSound = new Audio('resources/audio/countdown_end.mp3');
-
   const fontStyle = { align: 'center', fill: '#fff', fontSize: 20 };
   this.countdownText = new PIXI.Text(
     'Timer: ' + countdownValue.toString(),
@@ -82,9 +79,6 @@ GameContainer.prototype._createCountdown = function (
     this.countdownText.y = this.screenHeight * 0.03;
 
     this.addChild(this.countdownText);
-
-    if (countdownValue > 0) countdownSound.play();
-    else countdownEndSound.play();
 
     if (countdownValue <= 0) {
       clearInterval(this.startCountdown);

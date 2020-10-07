@@ -15,14 +15,20 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed) {
   // should be maximum the number of cards to swap at once
   // also this.cardsDoneSwapping is manipulated in the Card.js
   this.isAllSwappingDone = false;
+  this.isGuessing = false;
+  this.isGameEnd = false;
 
   // this is the guessed target card that are mapped to the swap card
   // {targetCard: [swapCard, score]}
   this.guessedTargetCards = {};
+  // this is for placeholder when a card is placed into the area for guessing
+  // when user does not interact and time runs out, we can remove the card and place back into side panel
+  this.targetCardforSelection = null;
 
   this.rotateAllCard = 0; // is there a chance that all swap cards rotate to left/right? on difficulty 3 this is enabled
   this.difficulty = difficulty;
   this.seed = seed;
+
   Math.seedrandom(seed);
   this._createCards(difficulty); // pass in difficulty
   this._initialize();
@@ -292,12 +298,12 @@ CardSwap.prototype._startSwapping = function () {
   // set the all swapping done boolean to true
   const setAllSwappingDone = function () {
     this.isAllSwappingDone = true;
-
+    this.isGuessing = true;
     // start timer for guessing
-    this._createCountdown(30, this._calculateScore.bind(this));
+    this._createCountdown(10, this._calculateScore.bind(this));
   };
   // stop swapping after 20 seconds
-  this._createCountdown(20, setAllSwappingDone.bind(this));
+  this._createCountdown(1, setAllSwappingDone.bind(this));
   this._swapOnce();
 
   // poll to make sure swapping is complete before calling more swapping cards
@@ -360,9 +366,11 @@ CardSwap.prototype._drawModalConfident = function (
   this.modalText.x = this.screenWidth * 0.5;
   this.modalText.y = this.screenHeight * 0.3;
   this.modalText.anchor.set(0.5);
-
+  console.log(guessedTargetCard);
   // store the target card guessed with the swap card
   const guessCardScore = function (self, score) {
+    if (guessedTargetCard.scoreSprite)
+      self.removeChild(guessedTargetCard.scoreSprite);
     guessedTargetCard.setGuessScore(score);
     self.addChild(guessedTargetCard.scoreSprite);
     self.guessedTargetCards[guessedTargetCard.imageLocation] = [
@@ -370,6 +378,10 @@ CardSwap.prototype._drawModalConfident = function (
       guessedSwapCard,
       score,
     ];
+    console.log(guessedTargetCard);
+
+    guessedTargetCard.setLastLocation(guessedTargetCard.x, guessedTargetCard.y);
+    self.targetCardforSelection = null;
     self._removeModalConfident();
   };
 
@@ -453,6 +465,21 @@ CardSwap.prototype._removeModalConfident = function () {
 };
 
 CardSwap.prototype._calculateScore = function () {
+  // guessing time has ran out
+  this.isGuessing = false;
+  this.isGameEnd = true;
+  console.log(this.targetCardforSelection);
+  if (this.targetCardforSelection) {
+    console.log(this.targetCardforSelection);
+    this.targetCardforSelection.setLocation(
+      this.targetCardforSelection.lastXposition,
+      this.targetCardforSelection.lastYposition
+    );
+    console.log(this.targetCardforSelection);
+
+    this._removeModalConfident();
+  }
+
   for (const swapCard of this.allSwapCards) {
     swapCard.flipCard(this);
   }
@@ -485,18 +512,14 @@ CardSwap.prototype._calculateScore = function () {
 
   this.score = totalScore;
 
-  // create expanding score text
+  // show the actual score on the scoreText
   if (this.scoreText) {
     this.removeChild(this.scoreText);
   }
+  this._createScoreText();
 
   const increaseScoreText = function (self) {
-    const textStyle = { align: 'center', fill: '#fff', fontSize: 20 };
-    self.scoreText = new PIXI.Text(`Score: ${self.score}`, textStyle);
-    self.scoreText.x = self.screenWidth * 0.05;
-    self.scoreText.y = self.screenHeight * 0.03;
     self.scoreText.anchor.set(0.5);
-    self.addChild(self.scoreText);
     const scoreTextTargetX = self.screenWidth * 0.4;
     const scoreTextTargetY = self.screenHeight * 0.4;
     const scoreTextTargetSize = 55;
@@ -602,9 +625,6 @@ CardSwap.prototype._generateTargetCards = function () {
 CardSwap.prototype._createTargetCards = function () {
   // add the target cards to the side panel
   targetCardMouseDown = function (event) {
-    // if already guessed, we do not move the card anymore
-    if (this.guessedScore !== 0) return;
-
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
@@ -614,8 +634,7 @@ CardSwap.prototype._createTargetCards = function () {
   };
 
   targetCardMouseUp = function (self) {
-    // if already guessed, we do not move the card anymore
-    if (this.guessedScore !== 0) return;
+    if (self.isGameEnd) return;
 
     this.alpha = 1;
     this.dragging = false;
@@ -624,7 +643,7 @@ CardSwap.prototype._createTargetCards = function () {
 
     // check if the targetCard is dropped into the guessingLocation
     let isPlacedIntoGuessing = false;
-    if (self.isAllSwappingDone) {
+    if (self.isGuessing) {
       for (const currentSwapCard of self.allSwapCards) {
         // if placed inside the guessing sprite
         if (
@@ -634,6 +653,7 @@ CardSwap.prototype._createTargetCards = function () {
           this.x = currentSwapCard.guessingSprite.x;
           this.y = currentSwapCard.guessingSprite.y;
           isPlacedIntoGuessing = true;
+          self.targetCardforSelection = this;
           self._drawModalConfident(currentSwapCard, this);
           break;
         }
@@ -644,16 +664,22 @@ CardSwap.prototype._createTargetCards = function () {
     if (!isPlacedIntoGuessing) {
       if (this.x < self.screenWidth * 0.8 + this.width * 0.5) {
         this.setLocation(this.lastXposition, this.lastYposition);
+      } else {
+        // if place in side panel, we remove the score placed
+        self.removeChild(this.scoreSprite);
+        delete self.guessedTargetCards[this.imageLocation];
       }
     }
   };
 
   targetCardMouseMove = function (cardSwapContainer) {
+    if (cardSwapContainer.isGameEnd) return;
+
     if (this.dragging) {
       var newPosition = this.mouseData.getLocalPosition(this.parent);
 
       // prevent the target card from going into the game area
-      if (!cardSwapContainer.isAllSwappingDone) {
+      if (!cardSwapContainer.isGuessing) {
         newPosition.x = Math.max(
           cardSwapContainer.screenWidth * 0.8 + this.width * 0.5,
           newPosition.x
@@ -712,8 +738,7 @@ CardSwap.prototype._initializeCards = function () {
 };
 CardSwap.prototype._initialize = function () {
   this._createBackground();
-  // this._drawModalConfident();
   this._createScoreText();
   this._initializeCards();
-  this._createCountdown(10, this._flipSwapCards.bind(this));
+  this._createCountdown(1, this._flipSwapCards.bind(this));
 };

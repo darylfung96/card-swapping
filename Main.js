@@ -38,8 +38,8 @@ function getUrlParameter(name) {
 
 // this callback is use to change the rendering container
 Main.prototype.startGameCallback = function () {
-  const difficulty = parseInt(getUrlParameter('difficulty'));
-  const seed = parseInt(getUrlParameter('seed'));
+  const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
+  const seed = parseInt(getUrlParameter('seed')) || 1;
   this.renderingContainer = new CardSwap(
     this.width,
     this.height,

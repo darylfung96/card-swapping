@@ -51,7 +51,7 @@ Card.prototype.flipCard = function (cardSwapContainer) {
   // start flipping open card
   function startFlipOpen() {
     const startFlipOpenInterval = setInterval(() => {
-      if (self.width < originalWidth) self.width += 1;
+      if (self.width < originalWidth) self.width += originalWidth * 0.02;
       else {
         clearInterval(startFlipOpenInterval);
         this.width = originalWidth;
