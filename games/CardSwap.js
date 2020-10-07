@@ -300,10 +300,10 @@ CardSwap.prototype._startSwapping = function () {
     this.isAllSwappingDone = true;
     this.isGuessing = true;
     // start timer for guessing
-    this._createCountdown(10, this._calculateScore.bind(this));
+    this._createCountdown(30, this._calculateScore.bind(this));
   };
   // stop swapping after 20 seconds
-  this._createCountdown(1, setAllSwappingDone.bind(this));
+  this._createCountdown(20, setAllSwappingDone.bind(this));
   this._swapOnce();
 
   // poll to make sure swapping is complete before calling more swapping cards
@@ -740,5 +740,5 @@ CardSwap.prototype._initialize = function () {
   this._createBackground();
   this._createScoreText();
   this._initializeCards();
-  this._createCountdown(1, this._flipSwapCards.bind(this));
+  this._createCountdown(10, this._flipSwapCards.bind(this));
 };
