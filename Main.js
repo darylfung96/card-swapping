@@ -1,14 +1,5 @@
-/*
-  Our hierarchical rendering will be:
-  Menu to render Menu container
-  different Games Container
-
-  Current containers are:
-  MenuContainer
-  SpeedyContainer
-
-  There is a callback that change the renderingContainer from the Main.js that will be pass into 
-  the containers.
+/**
+  Main class to render the CardSwap game
 
  */
 function Main() {
@@ -19,6 +10,7 @@ function Main() {
     view: document.getElementById('game-canvas'),
   });
 
+  // create splash screen to render
   this.renderingContainer = new SplashScreen(
     this.width,
     this.height,
@@ -27,6 +19,10 @@ function Main() {
   requestAnimationFrame(this.update.bind(this));
 }
 
+/**
+ * getUrlParameter receives the query parameter from the url
+ * @param {string} name - The name of the query parameter
+ */
 function getUrlParameter(name) {
   name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
   var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -36,10 +32,12 @@ function getUrlParameter(name) {
     : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-// this callback is use to change the rendering container
+/**
+ * startGameCallback is a function that starts the CardSwap game by changing the renderingContainer inside Main class
+ */
 Main.prototype.startGameCallback = function () {
   const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
-  const seed = parseInt(getUrlParameter('seed')) || 1;
+  const seed = getUrlParameter('seed') || '1';
   this.renderingContainer = new CardSwap(
     this.width,
     this.height,
@@ -48,6 +46,9 @@ Main.prototype.startGameCallback = function () {
   );
 };
 
+/**
+ * update is a function that loop updates for pixijs to render
+ */
 Main.prototype.update = function () {
   this.renderer.render(this.renderingContainer);
   requestAnimationFrame(this.update.bind(this));

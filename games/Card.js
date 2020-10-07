@@ -1,7 +1,11 @@
+/**
+ *  Card encapsulate the swap card as a class
+ *
+ * @param {string} imageLocation - the image location for this swap card
+ */
 function Card(imageLocation) {
   const imageTexture = PIXI.Texture.fromImage(imageLocation);
-  this.isTarget = false;
-  this.isGuessingTime = false;
+  this.isTarget = false; // true if this card is one of the target card
   this.imageLocation = imageLocation;
   this.backImageLocation = 'resources/Cards/cardBack_blue5.png';
   this.guessImageLocation = 'resources/Cards/card-guessing.png';
@@ -20,6 +24,11 @@ Card.prototype.isTarget = function () {
   return this.isTarget;
 };
 
+/**
+ * showGuessing shows the guessing box next to this target card
+ *
+ * @param {CardSwap} cardSwapContainer - the container of the CardSwap game
+ */
 Card.prototype.showGuessing = function (cardSwapContainer) {
   this.guessingSprite = PIXI.Sprite.fromImage(this.guessImageLocation);
   this.guessingSprite.x = this.x - this.width * 0.5;
@@ -30,8 +39,12 @@ Card.prototype.showGuessing = function (cardSwapContainer) {
   cardSwapContainer.addChild(this.guessingSprite);
 };
 
-// isFlipping is the boolean variable passed from the cardSwap container, to let cardSwapContainer
-// know when the flipping is done, so we can start swapping card positions
+/**
+ * flipCard flips the swap card. Manupulate the variable isFlipping from the CardSwap container once the swap card is done flipping
+ * to let CardSwap container know that it has done flipping
+ *
+ * @param {CardSwap} cardSwapContainer - the container of the CardSwap game
+ */
 Card.prototype.flipCard = function (cardSwapContainer) {
   const originalWidth = this.width;
   const self = this;
@@ -61,6 +74,18 @@ Card.prototype.flipCard = function (cardSwapContainer) {
     }, 10);
   }
 };
+
+// swap the card position with the cardToSwapPosition
+// cardSwapContainer is the CardSwap container
+// we pass cardSwapContainer in so we can increase the cardsDoneSwapping variable when this card is done swapping
+// so we know we can swap again
+/**
+ *  swapPosition swap the card position of this swap card. The cardSwapContainer is passed so this function can let the
+ * CardSwapContainer know that this card has done swapping its position.
+ *
+ * @param {array} cardToSwapPosition - the location to swap to - [x, y]
+ * @param {CardSwap} cardSwapContainer - the container for the CardSwam game
+ */
 Card.prototype.swapPosition = function (cardToSwapPosition, cardSwapContainer) {
   const newXPosition = cardToSwapPosition[0];
   const newYPosition = cardToSwapPosition[1];
@@ -90,12 +115,17 @@ Card.prototype.swapPosition = function (cardToSwapPosition, cardSwapContainer) {
 };
 
 /******************** Target Card ********************/
+/**
+ * TargetCard encapsulates the target cards in a class
+ *
+ * @param {string} imageLocation - the location for the image of the target card
+ */
 function TargetCard(imageLocation) {
   const imageTexture = PIXI.Texture.fromImage(imageLocation);
   this.imageLocation = imageLocation;
   this.lastXposition = 0;
   this.lastYposition = 0;
-  this.guessedScore = 0;
+  this.guessedScore = 0; // the score guessed by the user (1,2,3)
   this.scoreSprite = null;
   PIXI.Sprite.call(this, imageTexture);
 }
@@ -115,6 +145,12 @@ TargetCard.prototype.setLastLocation = function (lastX, lastY) {
   this.lastXposition = lastX;
   this.lastYposition = lastY;
 };
+
+/**
+ * setGuessScore show the score next to this target card after it has been placed into the guessing box
+ *
+ * @param {int} score - The score guessed for this target card
+ */
 TargetCard.prototype.setGuessScore = function (score) {
   this.guessedScore = score;
   this.scoreSprite = new PIXI.Text(score.toString(), {

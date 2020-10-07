@@ -1,7 +1,7 @@
 /*
   width:                          the width of the game canvas
   height:                         the height of the game canvas
-  changeContainerCallback:        the callback to change the rendering container from the Main.js
+  startGameCallback:              the callback to start the game
 */
 function SplashScreen(width, height, startGameCallback) {
   PIXI.Container.call(this);

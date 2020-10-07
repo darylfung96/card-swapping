@@ -1,3 +1,11 @@
+/**
+ * CardSwap game container runs the CardSwap game
+ *
+ * @param {int} screenWidth - the width of the game screen
+ * @param {int} screenHeight - the height of the game screen
+ * @param {int} difficulty - the difficulty of the game
+ * @param {string} seed - the seed provided to randomize the card swapping
+ */
 function CardSwap(screenWidth, screenHeight, difficulty, seed) {
   GameContainer.call(this, screenWidth, screenHeight);
 
@@ -30,12 +38,17 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed) {
   this.seed = seed;
 
   Math.seedrandom(seed);
-  this._createCards(difficulty); // pass in difficulty
+  this._initializeSettings(difficulty); // pass in difficulty
   this._initialize();
 }
 CardSwap.prototype = Object.create(GameContainer.prototype);
 
-CardSwap.prototype._createCards = function (difficulty) {
+/**
+ * _initializeSettings receives the difficulty and creates the settings for the game appropriately
+ *
+ * @param {int} difficulty - the difficulty of the game
+ */
+CardSwap.prototype._initializeSettings = function (difficulty) {
   this.cardGroup = ['cardHearts', 'cardSpades', 'cardDiamonds', 'cardClubs'];
   this.cardNumbers = ['9', '10', 'A', 'J', 'K', 'Q'];
   this.allCardNames = [];
@@ -106,76 +119,11 @@ CardSwap.prototype._createCards = function (difficulty) {
   this.cardPositions = cardPositionsKey[this.numSwapCards];
 };
 
-CardSwap.prototype.endSpeedyGame = function () {
-  if (this.startCountdown) {
-    clearInterval(this.startCountdown);
-  }
-
-  this._drawEndMenu();
-};
-
-CardSwap.prototype._drawEndMenu = function () {
-  this.endBackground = new PIXI.Sprite.fromImage('resources/bg/black_bg.jpg');
-  this.endBackground.width = this.screenWidth;
-  this.endBackground.height = this.screenHeight;
-  this.endBackground.alpha = 0.5;
-
-  const textStyle = {
-    fontSize: 40,
-    fill: '#ffffff',
-    align: 'center',
-  };
-  this.endMenu = new PIXI.Text('Game Ended', textStyle);
-  this.endMenu.x = this.screenWidth / 2;
-  this.endMenu.y = this.screenHeight * 0.2;
-  this.endMenu.anchor.set(0.5);
-
-  this.endDescription = new PIXI.Text(`You scored ${this.score}!`, textStyle);
-  this.endDescription.x = this.screenWidth / 2;
-  this.endDescription.y = this.screenHeight * 0.3;
-  this.endDescription.anchor.set(0.5);
-
-  const endButtonX = this.screenWidth / 2;
-  const endButtonY = this.screenHeight * 0.6;
-
-  const refreshButtonX = this.screenWidth / 2;
-  const refreshButtonY = this.screenHeight * 0.5;
-
-  const refreshCallback = () => {
-    this.removeChildren(0, this.children.length);
-    this._initialize();
-  };
-
-  this.refreshButton = ButtonFactoryText(
-    refreshButtonX,
-    refreshButtonY,
-    'Replay Game',
-    {
-      ...textStyle,
-      fontSize: 30,
-    },
-    refreshCallback
-  );
-
-  this.endButton = ButtonFactoryText(
-    endButtonX,
-    endButtonY,
-    'Exit Game',
-    {
-      ...textStyle,
-      fontSize: 30,
-    },
-    exitCallback
-  );
-
-  this.addChild(this.endBackground);
-  this.addChild(this.endMenu);
-  this.addChild(this.endDescription);
-  this.addChild(this.refreshButton);
-  this.addChild(this.endButton);
-};
-
-// swap all cards to one side
+/**
+ * _swapAll rotates all the swap cards to left/right by the numberOfTimes
+ *
+ * @param {int} numberOfTimes - the number of times to rotate all the swap cards to left/right
+ */
 CardSwap.prototype._swapAll = function (numberOfTimes) {
   // we will swap the amount of times numberOfTimes is called
   // for instance if numberOfTimes is 2, there are 3 swap cards
@@ -214,6 +162,7 @@ CardSwap.prototype._swapAll = function (numberOfTimes) {
     return nextAllSwapCardPositions;
   };
   const self = this;
+  // start swapping all the swap cards
   const swapAllInterval = setInterval(() => {
     const rightDirection = Math.random() >= 0.5; // swap all left or swap all right
     const nextAllSwapCardPositions = getAllNextSwapPositions.bind(
@@ -231,6 +180,10 @@ CardSwap.prototype._swapAll = function (numberOfTimes) {
   }, 500);
 };
 
+/**
+ * _swapOnce swap once either swapping all swap cards to left/right or selecting some cards to be swapped
+ *
+ */
 CardSwap.prototype._swapOnce = function () {
   // rotate all cards
   if (Math.random() > 0.8 && this.rotateAllCard > 0) {
@@ -258,7 +211,7 @@ CardSwap.prototype._swapOnce = function () {
     numSelectedSwapCards++;
   }
 
-  // start swapping cards
+  // shuffle the index of the selected swap cards
   function shuffle(a) {
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
@@ -291,6 +244,11 @@ CardSwap.prototype._swapOnce = function () {
     selectedCards[i].swapPosition(selectedCardsLocation[i], this);
   }
 };
+
+/**
+ * _startSwapping starts swapping of the swap cards in the game area for 20 seconds
+ *
+ */
 CardSwap.prototype._startSwapping = function () {
   this.isAllSwappingDone = false;
 
@@ -330,6 +288,11 @@ CardSwap.prototype._startSwapping = function () {
   }, 500);
 };
 
+/**
+ * _flipSwapCards flip the swap cards to close the swap cards when swapping is starting
+ * _flipSwapCards also flips the swap cards back up when the time to guess has ended
+ *
+ */
 CardSwap.prototype._flipSwapCards = function () {
   this.isFlipping = true;
   for (const currentSwapCard of this.allSwapCards) {
@@ -346,8 +309,13 @@ CardSwap.prototype._flipSwapCards = function () {
   }, 1000);
 };
 
-// guessSwapCard is the swapCard that was guessed by the user
-// guessTargetcard is the target card to guess the swap card
+/**
+ * _drawModalConfident shows the modal that lets the user select if they are confident in their decision of the target card
+ * in the swap card location
+ *
+ * @param {Card} - The swap Card selected to guess as matching the target card
+ * @param {TargetCard} - The target card chosen to guess as the swap card
+ */
 CardSwap.prototype._drawModalConfident = function (
   guessedSwapCard,
   guessedTargetCard
@@ -366,7 +334,7 @@ CardSwap.prototype._drawModalConfident = function (
   this.modalText.x = this.screenWidth * 0.5;
   this.modalText.y = this.screenHeight * 0.3;
   this.modalText.anchor.set(0.5);
-  console.log(guessedTargetCard);
+
   // store the target card guessed with the swap card
   const guessCardScore = function (self, score) {
     if (guessedTargetCard.scoreSprite)
@@ -378,7 +346,6 @@ CardSwap.prototype._drawModalConfident = function (
       guessedSwapCard,
       score,
     ];
-    console.log(guessedTargetCard);
 
     guessedTargetCard.setLastLocation(guessedTargetCard.x, guessedTargetCard.y);
     self.targetCardforSelection = null;
@@ -455,6 +422,10 @@ CardSwap.prototype._drawModalConfident = function (
   this.addChild(this.cancelText);
 };
 
+/**
+ * _removeModalConfident removes the modal that lets the user select if they are confident in their decision
+ *
+ */
 CardSwap.prototype._removeModalConfident = function () {
   this.removeChild(this.modalBackground);
   this.removeChild(this.modalText);
@@ -464,19 +435,19 @@ CardSwap.prototype._removeModalConfident = function () {
   this.removeChild(this.cancelText);
 };
 
+/**
+ * _calculateScore calculates the score user obtain once the guessing time has ended
+ *
+ */
 CardSwap.prototype._calculateScore = function () {
   // guessing time has ran out
   this.isGuessing = false;
   this.isGameEnd = true;
-  console.log(this.targetCardforSelection);
   if (this.targetCardforSelection) {
-    console.log(this.targetCardforSelection);
     this.targetCardforSelection.setLocation(
       this.targetCardforSelection.lastXposition,
       this.targetCardforSelection.lastYposition
     );
-    console.log(this.targetCardforSelection);
-
     this._removeModalConfident();
   }
 
@@ -491,7 +462,6 @@ CardSwap.prototype._calculateScore = function () {
     this.guessedTargetCards
   )) {
     const info = this.guessedTargetCards[guessedTargetCardImageLocation];
-    const guessedTargetCard = info[0];
     const guessedSwapCard = info[1];
     let score = info[2];
 
@@ -518,6 +488,7 @@ CardSwap.prototype._calculateScore = function () {
   }
   this._createScoreText();
 
+  // increase the score text to around the center of the screen
   const increaseScoreText = function (self) {
     self.scoreText.anchor.set(0.5);
     const scoreTextTargetX = self.screenWidth * 0.4;
@@ -547,15 +518,6 @@ CardSwap.prototype._calculateScore = function () {
       }
     }, 10);
   };
-  const showDifficultyText = function (self) {
-    const difficultyText = PIXI.Text(
-      'Difficulty: ' + self.difficulty.toString(),
-      { fill: '#fff', fontSize: 25 }
-    );
-    difficultyText.x = self.screenWidth * 0.2;
-    difficultyText.y = self.screenHeight * 0.1;
-    self.addChild(difficultyText);
-  };
   const self = this;
   const increaseScoreTextInterval = setInterval(() => {
     increaseScoreText(self);
@@ -564,6 +526,10 @@ CardSwap.prototype._calculateScore = function () {
 };
 
 /********************** Initialization ***********************/
+/**
+ * _createBackground creates the background for the game. The front panel, side panel and the top panel.
+ *
+ */
 CardSwap.prototype._createBackground = function () {
   // create background
   var bg = new PIXI.Sprite.fromImage('resources/bg/wooden.jpeg');
@@ -590,6 +556,11 @@ CardSwap.prototype._createBackground = function () {
 
   this.addChild(sidePanel);
 };
+
+/**
+ * _createSwapCards creates the swap card and place them into the CardSwap container game area
+ *
+ */
 CardSwap.prototype._createSwapCards = function () {
   // create cards
   for (let i = 0; i < this.numSwapCards; i++) {
@@ -611,6 +582,11 @@ CardSwap.prototype._createSwapCards = function () {
     this.allSwapCards.push(this.cardSprite);
   }
 };
+
+/**
+ * _generateTargetCards chooses the target cards by selecting randomly from the swap cards
+ *
+ */
 CardSwap.prototype._generateTargetCards = function () {
   // randomly select the swap card as target card
   let totalTargets = 0;
@@ -622,6 +598,11 @@ CardSwap.prototype._generateTargetCards = function () {
     }
   }
 };
+
+/**
+ * _createTargetCards creates the target cards and place them into the side panel
+ *
+ */
 CardSwap.prototype._createTargetCards = function () {
   // add the target cards to the side panel
   targetCardMouseDown = function (event) {
@@ -728,14 +709,23 @@ CardSwap.prototype._createTargetCards = function () {
     }
   }
 };
+
+/**
+ * _initializeCards creates all the card for CardSwap game
+ *
+ */
 CardSwap.prototype._initializeCards = function () {
   this.allSwapCards = [];
   this.allTargetCards = [];
-
   this._createSwapCards();
   this._generateTargetCards();
   this._createTargetCards();
 };
+
+/**
+ * _initialize initialize the game
+ *
+ */
 CardSwap.prototype._initialize = function () {
   this._createBackground();
   this._createScoreText();

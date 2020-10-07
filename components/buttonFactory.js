@@ -1,8 +1,12 @@
-/*
-  x:                    position x
-  y:                    position y
-  buttonSprite:         The image of the button
-  clickCallback:        Callback for clicking this button
+/**
+  ButtonFactorySprite creates a button with provided sprite
+  The return value is a PIXI Sprite 
+
+* @param {float} x:                   position x
+* @param {float} y:                   position y
+* @param {string}outSprite:           The location for the image for when the button is in default state
+* @param {string}onOverSprite:        The location for the image when mouse is hovered onto this button
+* @param {function}clickCallback:     Callback for clicking this button
 
 */
 function ButtonFactorySprite(x, y, outSprite, onOverSprite, clickCallback) {
@@ -50,6 +54,15 @@ function ButtonFactorySprite(x, y, outSprite, onOverSprite, clickCallback) {
   return button;
 }
 
+/**
+ * ButtonFactoryText creates a text that is clickable.
+ * The return value is a PIXI Text
+ * @param {float} x - the x position of the text button
+ * @param {float} y - the y position of the text button
+ * @param {string} text - the text for the text button
+ * @param {object} textStyle - the style for the text
+ * @param {function} clickCallback - the callback when clicked on this text button
+ */
 function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
   var button = new PIXI.Text(text, textStyle);
   //
@@ -92,12 +105,14 @@ function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
   return button;
 }
 
-/*
-  x:                    position x
-  y:                    position y
-  buttonSprite:         The image of the button
-  clickCallback:        Callback for clicking this button
-
+/**
+ * ButtonFactory creates a button with the sprite provided
+ * returns the PIXI Sprite button 
+ * 
+  @param{float} x:                    position x
+  @param{float} y:                    position y
+  @param{string} buttonSprite:         The image of the button
+  @param{function} clickCallback:        Callback for clicking this button
 */
 function ButtonFactory(x, y, width, height, buttonSprite, clickCallback) {
   var button = new PIXI.Sprite.fromImage(buttonSprite);

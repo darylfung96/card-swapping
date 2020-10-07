@@ -1,3 +1,9 @@
+/**
+ * GameContainer is the game container that contains general function
+ *
+ * @param {int} screenWidth - the width of the game area
+ * @param {int} screenHeight - the height of the game area
+ */
 function GameContainer(screenWidth, screenHeight) {
   PIXI.Container.call(this);
 
@@ -11,46 +17,12 @@ function GameContainer(screenWidth, screenHeight) {
 }
 GameContainer.prototype = Object.create(PIXI.Container.prototype);
 
-GameContainer.prototype.endMainGame = function () {
-  if (this.timer) {
-    clearInterval(this.timer);
-  }
-
-  if (this.startCountdown) {
-    clearInterval(this.startCountdown);
-  }
-};
-
-GameContainer.prototype._createTimeTicking = function (endFunction) {
-  this.timeLeft = 60;
-  this.timer = setInterval(() => {
-    // don't countdown if the game is paused
-    if (this.paused) return;
-
-    this.removeChild(this.timeTicking);
-    this.timeLeft--;
-    this.timeTicking = new PIXI.Text(this.timeLeft.toString(), {
-      fontSize: 20,
-      fill: '#ffffff',
-      align: 'center',
-    });
-    this.timeTicking.x = this.screenWidth * 0.9;
-    this.timeTicking.y = this.screenHeight * 0.05;
-    this.addChild(this.timeTicking);
-
-    if (this.timeLeft == 0) {
-      clearInterval(this.timer);
-      this.timer = false;
-      this.endMainGame();
-      endFunction();
-      // then do something about the children of this container
-    }
-  }, 1000);
-};
-
-/*
-startGameCallback is a callback to trigger drawing of the game graphics
-*/
+/**
+ * _createCountdown creates the timer in the upper right for remembering, swapping, and guessing
+ *
+ * @param {int} startingCountdownTime - the seconds to start countdown down
+ * @param {function} endCountdownCallback - the function to call after the countdown has reached 0
+ */
 GameContainer.prototype._createCountdown = function (
   startingCountdownTime,
   endCountdownCallback
@@ -90,6 +62,10 @@ GameContainer.prototype._createCountdown = function (
   }, 1000);
 };
 
+/**
+ * _createScoreText creates the text for the score
+ *
+ */
 GameContainer.prototype._createScoreText = function () {
   if (this.scoreText) {
     this.removeChild(this.scoreText);
