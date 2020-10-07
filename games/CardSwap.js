@@ -285,7 +285,7 @@ CardSwap.prototype._startSwapping = function () {
         }
       }
     }
-  }, 500);
+  }, 100);
 };
 
 /**
