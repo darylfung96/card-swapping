@@ -2,13 +2,17 @@
  *  Card encapsulate the swap card as a class
  *
  * @param {string} imageLocation - the image location for this swap card
+ * @param {int} speed - the speed to move the card (base on the total swaps required in 20 seconds)
+ *                    - if more total swaps are needed, the speed will increase
+ *                    - we will feed totalswaps into this card class and the card class will calculate the speed automatically
  */
-function Card(imageLocation) {
+function Card(imageLocation, speed) {
   const imageTexture = PIXI.Texture.fromImage(imageLocation);
   this.isTarget = false; // true if this card is one of the target card
   this.imageLocation = imageLocation;
   this.backImageLocation = 'resources/Cards/cardBack_blue5.png';
   this.guessImageLocation = 'resources/Cards/card-guessing.png';
+  this.speed = speed;
 
   // isFront, it will show the front of the card and not the back of the card
   this.isFront = true;
@@ -31,7 +35,7 @@ Card.prototype.isTarget = function () {
  */
 Card.prototype.showGuessing = function (cardSwapContainer) {
   this.guessingSprite = PIXI.Sprite.fromImage(this.guessImageLocation);
-  this.guessingSprite.x = this.x - this.width * 0.5;
+  this.guessingSprite.x = this.x - this.width * 0.7;
   this.guessingSprite.y = this.y - this.height * 0.5;
   this.guessingSprite.anchor.set(0.5);
   this.guessingSprite.scale.set(0.35);
@@ -50,7 +54,7 @@ Card.prototype.flipCard = function (cardSwapContainer) {
   const self = this;
   // start flipping card
   const startFlipInterval = setInterval(() => {
-    if (self.width > 1) self.width -= originalWidth * 0.02;
+    if (self.width > 3) self.width -= originalWidth * 0.02;
     else {
       // change flipping card sprite
       self.texture = PIXI.Texture.fromImage(
@@ -67,7 +71,7 @@ Card.prototype.flipCard = function (cardSwapContainer) {
       if (self.width < originalWidth) self.width += originalWidth * 0.02;
       else {
         clearInterval(startFlipOpenInterval);
-        this.width = originalWidth;
+        self.width = originalWidth;
         cardSwapContainer.isFlipping = false;
         self.isFront = !self.isFront;
       }
@@ -91,8 +95,8 @@ Card.prototype.swapPosition = function (cardToSwapPosition, cardSwapContainer) {
   const newYPosition = cardToSwapPosition[1];
   const self = this;
 
-  const deltaX = (newXPosition - self.x) / 100;
-  const deltaY = (newYPosition - self.y) / 100;
+  const deltaX = (newXPosition - self.x) / (8 * this.speed);
+  const deltaY = (newYPosition - self.y) / (8 * this.speed);
 
   const swapInterval = setInterval(() => {
     if (Math.abs(self.x - newXPosition) >= 0.01) {

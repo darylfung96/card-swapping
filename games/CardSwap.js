@@ -37,6 +37,8 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed) {
   this.difficulty = difficulty;
   this.seed = seed;
 
+  this.SWAPPING_SECONDS = 20;
+
   Math.seedrandom(seed);
   this._initializeSettings(difficulty); // pass in difficulty
   this._initialize();
@@ -97,17 +99,76 @@ CardSwap.prototype._initializeSettings = function (difficulty) {
       this.numTargetCards = 2;
       this.numSwapCards = 5;
       this.MAX_CARD_TO_SWAP = 2;
+      this.totalSwap = 10;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
       break;
     case 2:
       this.numTargetCards = 2;
       this.numSwapCards = 5;
       this.MAX_CARD_TO_SWAP = 4;
+      this.totalSwap = 10;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
       break;
     case 3:
       this.numTargetCards = 2;
       this.numSwapCards = 5;
       this.MAX_CARD_TO_SWAP = 4;
+      this.totalSwap = 10;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
       this.rotateAllCard = 1;
+      break;
+    case 4:
+      this.numTargetCards = 3;
+      this.numSwapCards = 5;
+      this.MAX_CARD_TO_SWAP = 3;
+      this.totalSwap = 12;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
+      break;
+    case 5:
+      this.numTargetCards = 3;
+      this.numSwapCards = 5;
+      this.MAX_CARD_TO_SWAP = 4;
+      this.totalSwap = 12;
+      this.rotateAllCard = 1;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
+      break;
+    case 6:
+      this.numTargetCards = 4;
+      this.numSwapCards = 8;
+      this.MAX_CARD_TO_SWAP = 4;
+      this.totalSwap = 12;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
+      break;
+    case 7:
+      this.numTargetCards = 4;
+      this.numSwapCards = 8;
+      this.MAX_CARD_TO_SWAP = 6;
+      this.totalSwap = 14;
+      this.rotateAllCard = 1;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
+      break;
+    case 8:
+      this.numTargetCards = 6;
+      this.numSwapCards = 8;
+      this.MAX_CARD_TO_SWAP = 4;
+      this.totalSwap = 14;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
+      break;
+    case 9:
+      this.numTargetCards = 6;
+      this.numSwapCards = 8;
+      this.MAX_CARD_TO_SWAP = 6;
+      this.totalSwap = 14;
+      this.rotateAllCard = 2;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
+      break;
+    case 10:
+      this.numTargetCards = 7;
+      this.numSwapCards = 9;
+      this.MAX_CARD_TO_SWAP = 6;
+      this.totalSwap = 14;
+      this.rotateAllCard = 2;
+      this.seconds_per_swap = (this.SWAPPING_SECONDS / this.totalSwap) * 1000;
       break;
   }
 
@@ -133,51 +194,78 @@ CardSwap.prototype._swapAll = function (numberOfTimes) {
   // before swapping more cards
   this.cardsDoneSwapping =
     -Math.max(0, numberOfTimes - 1) * this.allSwapCards.length;
+  // how many cards to be done swapping before we do swapAll again of numberOfTimes > 1
+  let nextBatchDoneSwapping = this.cardsDoneSwapping; // we will add this.allSwapCards.length to this variable in the loop
   // direction = 1 to the right
   // direction = -1 to the left
   const getAllNextSwapPositions = function (rightDirection) {
     // calculate all the swap cards next position
     const lastSwapCard = this.allSwapCards[this.allSwapCards.length - 1];
     let nextAllSwapCardPositions = [];
+    let indexOfNextAllSwapCardPositions = [];
     // rotate swap all to the left
     if (!rightDirection) {
       nextAllSwapCardPositions.push([lastSwapCard.x, lastSwapCard.y]);
-      for (let i = 0; i < this.allSwapCards.length - 1; i++)
+      indexOfNextAllSwapCardPositions.push(this.allSwapCards.length - 1);
+      for (let i = 0; i < this.allSwapCards.length - 1; i++) {
         nextAllSwapCardPositions.push([
           this.allSwapCards[i].x,
           this.allSwapCards[i].y,
         ]);
+        indexOfNextAllSwapCardPositions.push(i);
+      }
       // rotate swap all to the right
     } else {
-      for (let i = 1; i < this.allSwapCards.length; i++)
+      for (let i = 1; i < this.allSwapCards.length; i++) {
         nextAllSwapCardPositions.push([
           this.allSwapCards[i].x,
           this.allSwapCards[i].y,
         ]);
+        indexOfNextAllSwapCardPositions.push(i);
+      }
       nextAllSwapCardPositions.push([
         this.allSwapCards[0].x,
         this.allSwapCards[0].y,
       ]);
+      indexOfNextAllSwapCardPositions.push(0);
     }
-    return nextAllSwapCardPositions;
+    return [nextAllSwapCardPositions, indexOfNextAllSwapCardPositions];
+  };
+
+  // swap the this.allSwapCard index position because swapAll function uses the index of the swap card in its position in this.allSwapCards
+  const swapIndexOfSwapCardPositions = function (
+    cardSwapContainer,
+    indexOfNextAllSwapCardPositions
+  ) {
+    let temp = [];
+    for (let i = 0; i < indexOfNextAllSwapCardPositions.length; i++) {
+      temp.push(
+        cardSwapContainer.allSwapCards[indexOfNextAllSwapCardPositions[i]]
+      );
+    }
+    cardSwapContainer.allSwapCards = temp;
   };
   const self = this;
   // start swapping all the swap cards
   const swapAllInterval = setInterval(() => {
+    if (this.cardsDoneSwapping < nextBatchDoneSwapping) return;
+
+    nextBatchDoneSwapping += self.allSwapCards.length;
     const rightDirection = Math.random() >= 0.5; // swap all left or swap all right
-    const nextAllSwapCardPositions = getAllNextSwapPositions.bind(
-      self,
-      rightDirection
-    )();
+    const [
+      nextAllSwapCardPositions,
+      indexOfNextAllSwapCardPositions,
+    ] = getAllNextSwapPositions.bind(self, rightDirection)();
     // swap the cards
     for (let i = 0; i < self.allSwapCards.length; i++) {
       self.allSwapCards[i].swapPosition(nextAllSwapCardPositions[i], self);
     }
+    swapIndexOfSwapCardPositions(self, indexOfNextAllSwapCardPositions);
     // if it is the last time swapping all cards, then we can remove the interval
     if (self.cardsDoneSwapping >= 0) {
       clearInterval(swapAllInterval);
     }
-  }, 500);
+  }, 100);
 };
 
 /**
@@ -188,7 +276,13 @@ CardSwap.prototype._swapOnce = function () {
   // rotate all cards
   if (Math.random() > 0.8 && this.rotateAllCard > 0) {
     this.numCardsToSwapNow = this.allSwapCards.length;
-    this._swapAll(this.rotateAllCard);
+
+    // how many times to rotate all cardsleft/right
+    let numberOfTimestoRotate = 1;
+    if (this.rotateAllCard > 1) {
+      if (Math.random() > 0.5) numberOfTimestoRotate = 2;
+    }
+    this._swapAll(numberOfTimestoRotate);
     return;
   }
 
@@ -211,31 +305,28 @@ CardSwap.prototype._swapOnce = function () {
     numSelectedSwapCards++;
   }
 
-  // shuffle the index of the selected swap cards
-  function shuffle(a) {
-    var j, x, i;
-    for (i = a.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1));
-      x = a[i];
-      a[i] = a[j];
-      a[j] = x;
-    }
-    return a;
+  // move the index of the selected swap cards
+  function moveElementsInArray(a) {
+    const b = [...a];
+    const first = b.shift();
+    b.push(first);
+    return b;
   }
 
   // Array.from(Array(selectedCards.length).keys()) create [0, 1, 2, 3, ...]
-  const shuffledIndex = shuffle(Array.from(Array(selectedCards.length).keys())); // shuffle the selected card index, so we prepare to swap the card
+  const shuffledIndex = moveElementsInArray(
+    Array.from(Array(selectedCards.length).keys())
+  ); // move the selected card index, so we prepare to swap the card
   let selectedCardsLocation = []; // keep track of the selected cards location then we swap the cards
   for (let index = 0; index < selectedCardsIndex.length; index++) {
-    const currentPosition = selectedCardsIndex[index]; //4
-    const nextPosition = shuffledIndex[index]; //0
+    const currentPosition = selectedCardsIndex[index];
+    const nextPosition = shuffledIndex[index];
     selectedCardsLocation.push([
       selectedCards[nextPosition].x,
       selectedCards[nextPosition].y,
     ]);
-
     // change the position in the this.allSwapCards since our swapAll(Rotate all to next slot) utilizes the index of this.allSwapCards
-    this.allSwapCards[currentPosition] = selectedCards[nextPosition];
+    this.allSwapCards[selectedCardsIndex[nextPosition]] = selectedCards[index];
   }
   // swap the card location
   this.numCardsToSwapNow = selectedCardsLocation.length;
@@ -262,7 +353,6 @@ CardSwap.prototype._startSwapping = function () {
   };
   // stop swapping after 20 seconds
   this._createCountdown(20, setAllSwappingDone.bind(this));
-  this._swapOnce();
 
   // poll to make sure swapping is complete before calling more swapping cards
   const self = this;
@@ -285,7 +375,7 @@ CardSwap.prototype._startSwapping = function () {
         }
       }
     }
-  }, 100);
+  }, this.seconds_per_swap);
 };
 
 /**
@@ -571,7 +661,10 @@ CardSwap.prototype._createSwapCards = function () {
     this.allCardNames.splice(this.allCardNames.indexOf(cardName), 1); // remove card, must be unique on the table
 
     // generate card sprite
-    this.cardSprite = new Card(`resources/Cards/${cardName}.png`);
+    this.cardSprite = new Card(
+      `resources/Cards/${cardName}.png`,
+      this.totalSwap
+    );
     this.cardSprite.scale.set(0.6);
     this.cardSprite.x = this.cardPositions[i][0];
     this.cardSprite.y = this.cardPositions[i][1];
