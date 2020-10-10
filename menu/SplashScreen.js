@@ -7,6 +7,8 @@ function SplashScreen(width, height, startGameCallback) {
   PIXI.Container.call(this);
   this.startGameCallback = startGameCallback;
 
+  this.render = this;
+
   this.screenWidth = width;
   this.screenHeight = height;
 

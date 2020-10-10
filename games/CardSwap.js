@@ -10,6 +10,8 @@
 function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
   GameContainer.call(this, screenWidth, screenHeight);
 
+  this.render = this; // return the rendering container, for this class it is "this"
+
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
 
@@ -37,7 +39,6 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
   this.NPCScore = null;
 
   this.SWAPPING_SECONDS = 20;
-
   Math.seedrandom(seed);
   this._initializeSettings(difficulty); // pass in difficulty
   this._generateNPCScore(npc);
@@ -647,10 +648,14 @@ CardSwap.prototype._calculateScore = function () {
           NPCScoreText.anchor.set(0.5);
           self.addChild(NPCScoreText);
 
-          const winLoseText = new PIXI.Text(
-            `You ${self.score > self.NPCScore ? 'Win!' : 'Lose!'}`,
-            { fontSize: 55, fill: '#fff' }
-          );
+          let resultText = '';
+          if (self.score > self.NPCScore) resultText = 'You win!';
+          else if (self.score < self.NPCScore) resultText = 'You lose!';
+          else resultText = "It's a tie!";
+          const winLoseText = new PIXI.Text(resultText, {
+            fontSize: 55,
+            fill: '#fff',
+          });
           winLoseText.x = self.screenWidth * 0.4;
           winLoseText.y = self.screenHeight * 0.5;
           winLoseText.anchor.set(0.5);

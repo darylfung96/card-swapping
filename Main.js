@@ -39,19 +39,31 @@ Main.prototype.startGameCallback = function () {
   const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
   const seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
-  this.renderingContainer = new CardSwap(
-    this.width,
-    this.height,
-    difficulty,
-    seed,
-    npc
-  );
+  const numPlayers = getUrlParameter('numPlayers') || null;
+
+  if (numPlayers) {
+    this.renderingContainer = new CardSwapMultiplayerContainer(
+      this.width,
+      this.height,
+      difficulty,
+      seed,
+      numPlayers
+    );
+  } else {
+    this.renderingContainer = new CardSwap(
+      this.width,
+      this.height,
+      difficulty,
+      seed,
+      npc
+    );
+  }
 };
 
 /**
  * update is a function that loop updates for pixijs to render
  */
 Main.prototype.update = function () {
-  this.renderer.render(this.renderingContainer);
+  this.renderer.render(this.renderingContainer.render);
   requestAnimationFrame(this.update.bind(this));
 };
