@@ -26,13 +26,6 @@ function CardSwapMultiplayer(
 }
 CardSwapMultiplayer.prototype = Object.create(CardSwap.prototype);
 
-CardSwapMultiplayer.prototype.destroySelf = function () {
-  while (this.children[0]) {
-    this.removeChild(this.children[0]);
-  }
-  this.destroy(true);
-};
-
 CardSwapMultiplayer.prototype._calculateScore = function () {
   // guessing time has ran out
   this.isGuessing = false;
@@ -77,18 +70,15 @@ CardSwapMultiplayer.prototype._calculateScore = function () {
 
 CardSwapMultiplayer.prototype._createPlayerText = function () {
   const textStyle = { align: 'center', fill: '#ffffff', fontSize: 20 };
-  this.playerText = new PIXI.Text(`Player: ${this.currentPlayer}`, textStyle);
+  this.playerText = new PIXI.Text(`Player ${this.currentPlayer}`, textStyle);
   this.playerText.x = this.screenWidth * 0.2;
   this.playerText.y = this.screenHeight * 0.03;
   this.addChild(this.playerText);
 };
 
 CardSwapMultiplayer.prototype._initialize = function () {
-  this._createBackground();
-  this._createScoreText();
-  this._initializeCards();
+  CardSwap.prototype._initialize.call(this);
   this._createPlayerText();
-  this._createCountdown(10, this._flipSwapCards.bind(this));
 };
 
 //=====================  ===================== ===================== //
@@ -119,30 +109,80 @@ function CardSwapMultiplayerContainer(
   this.numPlayers = numPlayers;
   this.playerScores = [];
 
+  this.prePlayContainer = new PIXI.Container();
+
   this.currentPlayer = 0;
   this._startGame(this.currentPlayer);
 }
 
 CardSwapMultiplayerContainer.prototype._startGame = function (currentPlayer) {
-  this.render = new CardSwapMultiplayer(
-    this.screenWidth,
-    this.screenHeight,
-    this.difficulty,
-    this.seed,
-    currentPlayer,
-    this._playerEndGame.bind(this)
-  );
+  while (this.prePlayContainer.children[0]) {
+    this.prePlayContainer.removeChild(this.prePlayContainer.children[0]);
+  }
+  this.render = this.prePlayContainer;
+
+  const playerEndText = new PIXI.Text(`Player ${this.currentPlayer} turn`, {
+    fill: '#fff',
+    fontSize: 35,
+  });
+  playerEndText.x = this.screenWidth * 0.5;
+  playerEndText.y = this.screenHeight * 0.5;
+  playerEndText.anchor.set(0.5);
+  this.render.addChild(playerEndText);
+
+  const self = this;
+  const startNextPlayerGameInterval = setInterval(() => {
+    self.render.removeChild(playerEndText);
+    self.render = new CardSwapMultiplayer(
+      this.screenWidth,
+      this.screenHeight,
+      this.difficulty,
+      this.seed,
+      currentPlayer,
+      this._playerEndGame.bind(this)
+    );
+    clearInterval(startNextPlayerGameInterval);
+  }, 2000);
+  // end of destroying the current player rendering
+};
+
+CardSwapMultiplayerContainer.prototype._showEndScores = function () {
+  while (this.prePlayContainer.children[0]) {
+    this.prePlayContainer.removeChild(this.prePlayContainer.children[0]);
+  }
+  this.render = this.prePlayContainer;
+
+  for (let i = 0; i < this.numPlayers; i++) {
+    const currentPlayerText = new PIXI.Text(
+      `Player ${i} scored: ${this.playerScores[i]}`,
+      {
+        fill: '#fff',
+        fontSize: 35,
+      }
+    );
+
+    currentPlayerText.x = this.screenWidth * 0.5;
+    currentPlayerText.y = this.screenHeight * (0.1 + 0.1 * i);
+    currentPlayerText.anchor.set(0.5);
+    this.render.addChild(currentPlayerText);
+  }
 };
 
 CardSwapMultiplayerContainer.prototype._playerEndGame = function () {
   this.playerScores.push(this.render.score);
   this.currentPlayer++;
 
-  this.render.destroySelf();
+  // destroy the current player rendering
+  while (this.render.children[0]) {
+    this.render.removeChild(this.render.children[0]);
+  }
+  this.render.destroy(true);
 
+  // start the rendering for the next player
   if (this.currentPlayer < this.numPlayers) {
     this._startGame(this.currentPlayer);
   } else {
     // show the scores
+    this._showEndScores();
   }
 };

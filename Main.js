@@ -39,7 +39,12 @@ Main.prototype.startGameCallback = function () {
   const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
   const seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
-  const numPlayers = getUrlParameter('numPlayers') || null;
+  let numPlayers = getUrlParameter('numPlayers') || null;
+
+  // max player is 4 and min player is 1
+  if (numPlayers !== null) {
+    numPlayers = Math.min(Math.max(1, numPlayers), 4);
+  }
 
   if (numPlayers) {
     this.renderingContainer = new CardSwapMultiplayerContainer(
