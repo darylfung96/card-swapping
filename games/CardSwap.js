@@ -5,16 +5,13 @@
  * @param {int} screenHeight - the height of the game screen
  * @param {int} difficulty - the difficulty of the game
  * @param {string} seed - the seed provided to randomize the card swapping
+ * @param {string} npc - if there is an npc that player is playing against (hard, medium, easy)
  */
-function CardSwap(screenWidth, screenHeight, difficulty, seed) {
+function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
   GameContainer.call(this, screenWidth, screenHeight);
 
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
-
-  // set the audio
-  this.correctAudio = new Audio('resources/audio/correct.mp3');
-  this.incorrectAudio = new Audio('resources/audio/incorrect.mp3');
 
   this.isFlipping = false; // is the card still getting flipped?
 
@@ -36,14 +33,47 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed) {
   this.rotateAllCard = 0; // is there a chance that all swap cards rotate to left/right? on difficulty 3 this is enabled
   this.difficulty = difficulty;
   this.seed = seed;
+  this.npc = npc;
+  this.NPCScore = null;
 
   this.SWAPPING_SECONDS = 20;
 
   Math.seedrandom(seed);
   this._initializeSettings(difficulty); // pass in difficulty
+  this._generateNPCScore(npc);
   this._initialize();
 }
 CardSwap.prototype = Object.create(GameContainer.prototype);
+
+/**
+ * _generateNPCScore generates the NPC scores
+ *
+ * @param {string} npc - the npc difficulty (hard, medium, easy)
+ */
+CardSwap.prototype._generateNPCScore = function (npc) {
+  if (npc === null) return;
+
+  const generateNPCScore = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+  this.NPCScore = 0;
+
+  const NPCDiffiToScores = {
+    hard: () => {
+      return generateNPCScore(2, 3);
+    },
+    medium: () => {
+      return generateNPCScore(1, 3);
+    },
+    easy: () => {
+      return generateNPCScore(1, 2);
+    },
+  };
+
+  for (let i = 0; i < this.numTargetCards; i++) {
+    this.NPCScore += NPCDiffiToScores[npc]();
+  }
+};
 
 /**
  * _initializeSettings receives the difficulty and creates the settings for the game appropriately
@@ -582,7 +612,7 @@ CardSwap.prototype._calculateScore = function () {
   const increaseScoreText = function (self) {
     self.scoreText.anchor.set(0.5);
     const scoreTextTargetX = self.screenWidth * 0.4;
-    const scoreTextTargetY = self.screenHeight * 0.4;
+    const scoreTextTargetY = self.screenHeight * 0.3;
     const scoreTextTargetSize = 55;
     const deltaX = (scoreTextTargetX - self.scoreText.x) / 200;
     const deltaY = (scoreTextTargetY - self.scoreText.y) / 200;
@@ -604,6 +634,27 @@ CardSwap.prototype._calculateScore = function () {
         for (const targetCard of self.allTargetCards) {
           self.removeChild(targetCard.scoreSprite);
           self.removeChild(targetCard);
+        }
+
+        // create NPC Score Text if exist
+        if (this.NPCScore !== null) {
+          const NPCScoreText = new PIXI.Text(`NPC Score: ${self.NPCScore}`, {
+            fontSize: 55,
+            fill: '#fff',
+          });
+          NPCScoreText.x = self.screenWidth * 0.4;
+          NPCScoreText.y = self.screenHeight * 0.4;
+          NPCScoreText.anchor.set(0.5);
+          self.addChild(NPCScoreText);
+
+          const winLoseText = new PIXI.Text(
+            `You ${self.score > self.NPCScore ? 'Win!' : 'Lose!'}`,
+            { fontSize: 55, fill: '#fff' }
+          );
+          winLoseText.x = self.screenWidth * 0.4;
+          winLoseText.y = self.screenHeight * 0.5;
+          winLoseText.anchor.set(0.5);
+          self.addChild(winLoseText);
         }
       }
     }, 10);

@@ -38,11 +38,13 @@ function getUrlParameter(name) {
 Main.prototype.startGameCallback = function () {
   const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
   const seed = getUrlParameter('seed') || '1';
+  const npc = getUrlParameter('npc') || null;
   this.renderingContainer = new CardSwap(
     this.width,
     this.height,
     difficulty,
-    seed
+    seed,
+    npc
   );
 };
 
