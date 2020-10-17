@@ -24,6 +24,7 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
   this.isAllSwappingDone = false;
   this.isGuessing = false;
   this.isGameEnd = false;
+  this.modalVisible = false;
 
   // this is the guessed target card that are mapped to the swap card
   // {targetCard: [swapCard, score]}
@@ -34,6 +35,7 @@ function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
 
   this.rotateAllCard = 0; // is there a chance that all swap cards rotate to left/right? on difficulty 3 this is enabled
   this.difficulty = difficulty;
+  this.levelText = false;
   this.seed = seed;
   this.npc = npc;
   this.NPCScore = null;
@@ -380,7 +382,7 @@ CardSwap.prototype._startSwapping = function () {
     this.isAllSwappingDone = true;
     this.isGuessing = true;
     // start timer for guessing
-    this._createCountdown(3, this._calculateScore.bind(this));
+    this._createCountdown(20, this._calculateScore.bind(this));
   };
   // stop swapping after 20 seconds
   this._createCountdown(2, setAllSwappingDone.bind(this));
@@ -441,6 +443,7 @@ CardSwap.prototype._drawModalConfident = function (
   guessedSwapCard,
   guessedTargetCard
 ) {
+  this.modalVisible = true;
   this.modalBackground = PIXI.Sprite.fromImage('resources/bg/blue_bg.png');
   this.modalBackground.x = this.screenWidth * 0.5;
   this.modalBackground.y = this.screenHeight * 0.5;
@@ -467,7 +470,6 @@ CardSwap.prototype._drawModalConfident = function (
       guessedSwapCard,
       score,
     ];
-
     guessedTargetCard.setLastLocation(guessedTargetCard.x, guessedTargetCard.y);
     self.targetCardforSelection = null;
     self._removeModalConfident();
@@ -484,8 +486,8 @@ CardSwap.prototype._drawModalConfident = function (
   this.notConfidentText.interactive = true;
   this.notConfidentText.buttonMode = true;
   this.notConfidentText
-    .on('mousedown', guessCardScore.bind(this.notConfidentText, this, 1))
-    .on('touchstart', guessCardScore.bind(this.notConfidentText, this, 1));
+    .on('mouseup', guessCardScore.bind(this.notConfidentText, this, 1))
+    .on('touchend', guessCardScore.bind(this.notConfidentText, this, 1));
 
   this.somewhatConfidentText = PIXI.Sprite.fromImage(
     'resources/buttons/button_somewhat-confident.png'
@@ -498,8 +500,8 @@ CardSwap.prototype._drawModalConfident = function (
   this.somewhatConfidentText.interactive = true;
   this.somewhatConfidentText.buttonMode = true;
   this.somewhatConfidentText
-    .on('mousedown', guessCardScore.bind(this.somewhatConfidentText, this, 2))
-    .on('touchstart', guessCardScore.bind(this.somewhatConfidentText, this, 2));
+    .on('mouseup', guessCardScore.bind(this.somewhatConfidentText, this, 2))
+    .on('touchend', guessCardScore.bind(this.somewhatConfidentText, this, 2));
 
   this.veryConfidentText = PIXI.Sprite.fromImage(
     'resources/buttons/button_very-confident.png'
@@ -512,8 +514,8 @@ CardSwap.prototype._drawModalConfident = function (
   this.veryConfidentText.interactive = true;
   this.veryConfidentText.buttonMode = true;
   this.veryConfidentText
-    .on('mousedown', guessCardScore.bind(this.veryConfidentText, this, 3))
-    .on('touchstart', guessCardScore.bind(this.veryConfidentText, this, 3));
+    .on('mouseup', guessCardScore.bind(this.veryConfidentText, this, 3))
+    .on('touchend', guessCardScore.bind(this.veryConfidentText, this, 3));
 
   const cancelGuessingModal = function () {
     guessedTargetCard.setLocation(
@@ -554,6 +556,7 @@ CardSwap.prototype._removeModalConfident = function () {
   this.removeChild(this.somewhatConfidentText);
   this.removeChild(this.veryConfidentText);
   this.removeChild(this.cancelText);
+  this.modalVisible = false;
 };
 
 /**
@@ -638,7 +641,7 @@ CardSwap.prototype._calculateScore = function () {
         }
 
         // create NPC Score Text if exist
-        if (this.NPCScore !== null) {
+        if (self.NPCScore !== null) {
           const NPCScoreText = new PIXI.Text(`NPC Score: ${self.NPCScore}`, {
             fontSize: 55,
             fill: '#fff',
@@ -754,7 +757,10 @@ CardSwap.prototype._generateTargetCards = function () {
  */
 CardSwap.prototype._createTargetCards = function () {
   // add the target cards to the side panel
+  const self = this;
   targetCardMouseDown = function (event) {
+    if (self.modalVisible) return; // prevevent clicking on the card when the modal is shown
+
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
@@ -765,6 +771,7 @@ CardSwap.prototype._createTargetCards = function () {
 
   targetCardMouseUp = function (self) {
     if (self.isGameEnd) return;
+    if (!this.dragging) return;
 
     this.alpha = 1;
     this.dragging = false;
@@ -804,25 +811,24 @@ CardSwap.prototype._createTargetCards = function () {
 
   targetCardMouseMove = function (cardSwapContainer) {
     if (cardSwapContainer.isGameEnd) return;
+    if (!this.dragging) return;
 
-    if (this.dragging) {
-      var newPosition = this.mouseData.getLocalPosition(this.parent);
+    var newPosition = this.mouseData.getLocalPosition(this.parent);
 
-      // prevent the target card from going into the game area
-      if (!cardSwapContainer.isGuessing) {
-        newPosition.x = Math.max(
-          cardSwapContainer.screenWidth * 0.8 + this.width * 0.5,
-          newPosition.x
-        );
-      }
-
-      newPosition.y = Math.max(
-        cardSwapContainer.screenHeight * 0.1 + this.height * 0.5,
-        newPosition.y
+    // prevent the target card from going into the game area
+    if (!cardSwapContainer.isGuessing) {
+      newPosition.x = Math.max(
+        cardSwapContainer.screenWidth * 0.8 + this.width * 0.5,
+        newPosition.x
       );
-
-      this.setLocation(newPosition.x, newPosition.y);
     }
+
+    newPosition.y = Math.max(
+      cardSwapContainer.screenHeight * 0.1 + this.height * 0.5,
+      newPosition.y
+    );
+
+    this.setLocation(newPosition.x, newPosition.y);
   };
   let targetX = this.screenWidth * 0.84;
   let targetY = this.screenHeight * 0.17;
@@ -872,13 +878,30 @@ CardSwap.prototype._initializeCards = function () {
 };
 
 /**
+ * _createLevelText creates the text for the level
+ *
+ */
+GameContainer.prototype._createLevelText = function () {
+  if (this.levelText) {
+    this.removeChild(this.levelText);
+  }
+
+  const textStyle = { align: 'center', fill: '#ffffff', fontSize: 20 };
+  this.levelText = new PIXI.Text(`Level: ${this.difficulty}`, textStyle);
+  this.levelText.x = this.screenWidth * 0.5;
+  this.levelText.y = this.screenHeight * 0.05;
+  this.levelText.anchor.set(0.5);
+  this.addChild(this.levelText);
+};
+
+/**
  * _initialize initialize the game
  *
  */
 CardSwap.prototype._initialize = function () {
   this._createBackground();
-
   this._createScoreText();
+  this._createLevelText();
   this._initializeCards();
   this._createCountdown(1, this._flipSwapCards.bind(this));
 };

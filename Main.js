@@ -33,11 +33,27 @@ function getUrlParameter(name) {
 }
 
 /**
+ * This function creates a random string
+ *
+ * @param {int} length - the length of the randomize string
+ */
+function createRandomString(length) {
+  var result = '';
+  var characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+/**
  * startGameCallback is a function that starts the CardSwap game by changing the renderingContainer inside Main class
  */
 Main.prototype.startGameCallback = function () {
   const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
-  const seed = getUrlParameter('seed') || '1';
+  let seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
   let numPlayers = getUrlParameter('numPlayers') || null;
 
@@ -45,6 +61,9 @@ Main.prototype.startGameCallback = function () {
   if (numPlayers !== null) {
     numPlayers = Math.min(Math.max(1, numPlayers), 4);
   }
+
+  // randomize the seed
+  seed = createRandomString(10);
 
   if (numPlayers) {
     this.renderingContainer = new CardSwapMultiplayerContainer(

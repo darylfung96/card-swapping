@@ -34,8 +34,13 @@
     <script src="Main.js"></script>
     <script>
       function init() {
-        var width = document.getElementById('game-canvas').width;
-        var height = document.getElementById('game-canvas').height;
+        const documentLength = document.body.clientHeight * 0.95;
+
+        document.getElementById('game-canvas').width = documentLength;
+        document.getElementById('game-canvas').height = documentLength;
+
+        const width = documentLength;
+        const height = documentLength;
 
         main = new Main(width, height);
       }
