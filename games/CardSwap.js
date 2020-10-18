@@ -26,7 +26,6 @@ function CardSwap(
   this.userInfo = userInfo;
   this.startGameCallback = startGameCallback;
   this.returnMenuCallback = returnMenuCallback;
-  console.log(this.userInfo);
 
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
@@ -622,6 +621,16 @@ CardSwap.prototype._calculateScore = function () {
 
   this.score = totalScore;
 
+  // update user level (if user exceed 70% of the max score)
+  const scoreThreshold = Math.floor(this.allTargetCards.length * 3 * 0.7);
+  if (this.score > scoreThreshold) {
+    if (this.userInfo.level < this.difficulty + 1)
+      this.userInfo.level = this.difficulty + 1;
+    updateUser(this.userInfo, (data) => {
+      if (!data.success) console.log('error updating user information');
+    });
+  }
+
   // show the actual score on the scoreText
   if (this.scoreText) {
     this.removeChild(this.scoreText);
@@ -657,6 +666,29 @@ CardSwap.prototype._calculateScore = function () {
           self.removeChild(targetCard);
         }
 
+        // congratulate and unlock level
+        if (self.score > scoreThreshold) {
+          const unlockLevelText = new PIXI.Text(
+            `You unlock level ${self.difficulty + 1}!`,
+            { fill: '#fff', fontSize: 35 }
+          );
+          unlockLevelText.x = self.screenWidth * 0.4;
+          unlockLevelText.y = self.screenHeight * 0.2;
+          unlockLevelText.anchor.set(0.5);
+          self.addChild(unlockLevelText);
+
+          const goNextLevelText = ButtonFactoryText(
+            self.screenWidth * 0.4,
+            self.screenHeight * 0.5,
+            `Go to level ${self.difficulty + 1}`,
+            { fill: '#fff', fontSize: 35 },
+            () => {
+              self.startGameCallback(self.difficulty + 1, self.userInfo);
+            }
+          );
+          self.addChild(goNextLevelText);
+        }
+
         // create NPC Score Text if exist
         if (self.NPCScore !== null) {
           const NPCScoreText = new PIXI.Text(`NPC Score: ${self.NPCScore}`, {
@@ -684,7 +716,7 @@ CardSwap.prototype._calculateScore = function () {
 
         self.playAgainText = ButtonFactoryText(
           self.screenWidth * 0.4,
-          self.screenHeight * 0.5,
+          self.screenHeight * 0.6,
           'Play Again',
           { fill: '#fff', fontSize: 35 },
           () => {
@@ -694,7 +726,7 @@ CardSwap.prototype._calculateScore = function () {
         self.addChild(self.playAgainText);
         self.exitText = ButtonFactoryText(
           self.screenWidth * 0.4,
-          self.screenHeight * 0.6,
+          self.screenHeight * 0.7,
           'Exit Game',
           { fill: '#fff', fontSize: 35 },
           self.returnMenuCallback

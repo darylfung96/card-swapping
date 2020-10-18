@@ -1,22 +1,18 @@
 <?php
 include 'returnResponse.php';
 
-$email = $_POST['email'];
-$name = substr($email, 0, strpos($email, "@"));
-$userFileDir = "fileStorage/{$email}/";
+$id = $_POST['id'];
+$userFileDir = "fileStorage/{$id}/";
 $userFilename = "{$userFileDir}/info.txt";
 
-$userInfo->email = $email;
-$userInfo->name = $name;
+$userInfo->id = $id;
+$userInfo->level = 1;
 
 $returnValue->userInfo = $userInfo;
 $returnValue->msg = "";
 
-if (file_exists("fileStorage/{$email}/")) {
-  $userInfo = file_get_contents($userFilename);
-  $userInfo = json_decode($userInfo);
-  $returnValue->userInfo = $userInfo;
-  $returnValue = generateResponse($returnValue, "User already exist, accessing user data", true);
+if (file_exists("fileStorage/{$id}/")) {
+  $returnValue = generateResponse($returnValue, "ID already exist", false);
   echo json_encode($returnValue);
 return;
 }

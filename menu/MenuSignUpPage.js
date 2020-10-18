@@ -1,34 +1,38 @@
-//========================= login page =========================//
-Menu.prototype._enterMainPage = function () {
-  const id = this.idText.text;
+//========================= signUp page =========================//
+Menu.prototype._enterLoginPage = function () {
+  this._removeSignupPage();
+  this._createLoginPage();
+};
 
-  if (this.errorText) this.removeChild(this.errorText);
-  const getUserCallback = function (data) {
+Menu.prototype._createUser = function () {
+  const createUserCallback = function (data) {
     if (!data.success) {
-      this.errorText = ButtonFactoryText(
-        this.screenWidth * 0.5,
-        this.screenHeight * 0.3,
-        `Error: ${data.msg}`,
-        { fill: 'red', fontSize: 25 }
-      );
+      this.errorText = new PIXI.Text(`Error: ${data.msg}`, {
+        fill: 'red',
+        fontSize: 25,
+      });
+      this.errorText.x = this.screenWidth * 0.5;
+      this.errorText.y = this.screenHeight * 0.3;
+      this.errorText.anchor.set(0.5);
       this.addChild(this.errorText);
-      return;
     }
-    setCookie('id', id, 30);
-    this._removeLoginPage();
-    this._createMainPage();
+
+    // successfully created user
+    this.successText = new PIXI.Text('Successfully created user', {
+      fill: '#8cff82',
+      fontSize: 25,
+    });
+    this.successText.x = this.screenWidth * 0.5;
+    this.successText.y = this.screenHeight * 0.3;
+    this.successText.anchor.set(0.5);
+    this.addChild(this.successText);
   };
-  getUser(id, getUserCallback.bind(this));
+
+  createUser(this.idText.text, createUserCallback.bind(this));
 };
 
-Menu.prototype._enterSignupPage = function () {
-  this._removeLoginPage();
-  this._createSignupPage();
-};
-
-Menu.prototype._createLoginPage = function () {
-  // current method (login or create id)
-  this.isLoginText = new PIXI.Text('Sign In', { fill: '#fff', fontSize: 25 });
+Menu.prototype._createSignupPage = function () {
+  this.isLoginText = new PIXI.Text('Create ID', { fill: '#fff', fontSize: 25 });
   this.isLoginText.x = this.screenWidth * 0.5;
   this.isLoginText.y = this.screenHeight * 0.25;
   this.isLoginText.anchor.set(0.5);
@@ -55,37 +59,37 @@ Menu.prototype._createLoginPage = function () {
       disabled: { fill: 0xdbdbdb, rounded: 12 },
     },
   });
-  this.idText.placeholder = 'Enter your ID to sign in';
+  this.idText.placeholder = 'Enter an ID';
   this.idText.x = this.screenWidth * 0.5;
   this.idText.y = this.screenHeight * 0.4;
   this.idText.pivot.x = this.idText.width / 2;
   this.idText.pivot.y = this.idText.height / 2;
   this.addChild(this.idText);
 
-  this.enterText = ButtonFactoryText(
+  this.signUpText = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.5,
-    'Enter',
+    'Create',
     { fill: '#fff', fontSize: 30 },
-
-    this._enterMainPage.bind(this)
+    this._createUser.bind(this)
   );
 
   this.createIdText = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.55,
-    'Click here to create ID',
+    'Click here to sign in',
     { fill: '#fff', fontSize: 20 },
-    this._enterSignupPage.bind(this)
+    this._enterLoginPage.bind(this)
   );
-  this.addChild(this.enterText);
+  this.addChild(this.signUpText);
   this.addChild(this.createIdText);
 };
 
-Menu.prototype._removeLoginPage = function () {
+Menu.prototype._removeSignupPage = function () {
   if (this.idText) this.removeChild(this.idText);
-  if (this.enterText) this.removeChild(this.enterText);
+  if (this.signUpText) this.removeChild(this.signUpText);
   if (this.createIdText) this.removeChild(this.createIdText);
   if (this.errorText) this.removeChild(this.errorText);
+  if (this.successText) this.removeChild(this.successText);
   if (this.isLoginText) this.removeChild(this.isLoginText);
 };

@@ -66,8 +66,8 @@ function ButtonFactorySprite(x, y, outSprite, onOverSprite, clickCallback) {
 function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
   var button = new PIXI.Text(text, textStyle);
   //
-  button.interactive = true;
-  button.buttonMode = true;
+  if (clickCallback) button.interactive = true;
+  if (clickCallback) button.buttonMode = true;
   button.x = x;
   button.y = y;
   button.anchor.set(0.5);

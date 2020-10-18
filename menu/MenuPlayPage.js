@@ -4,22 +4,23 @@ Menu.prototype._createPlayPage = function () {
     this._removePlayPage();
     this._createSinglePage();
   };
+
   // single player
-  this.singlePlayerText = this.__createText(
-    'Single Player',
-    { fill: '#fff', fontSize: 30 },
+  this.singlePlayerText = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.4,
+    'Single Player',
+    { fill: '#fff', fontSize: 30 },
     singleCallback.bind(this)
   );
   this.addChild(this.singlePlayerText);
 
   // challenge player
-  this.challengeText = this.__createText(
-    'Challenge Player',
-    { fill: '#fff', fontSize: 30 },
+  this.challengeText = ButtonFactoryText(
     this.screenWidth * 0.5,
-    this.screenHeight * 0.5
+    this.screenHeight * 0.5,
+    'Challenge Player',
+    { fill: '#fff', fontSize: 30 }
   );
   this.addChild(this.challengeText);
 
@@ -39,7 +40,7 @@ Menu.prototype._removePlayPage = function () {
 
 //========================= single player page =========================//
 Menu.prototype.__createSingleLevels = function () {
-  const email = getCookie('email');
+  const id = getCookie('id');
   const self = this;
   self.singleLevels = [];
 
@@ -55,7 +56,6 @@ Menu.prototype.__createSingleLevels = function () {
     const level = data.userInfo.level || 1;
 
     const mouseOver = function () {
-      console.log('a');
       this.width *= 1.1;
     };
     const mouseOut = function () {
@@ -96,7 +96,7 @@ Menu.prototype.__createSingleLevels = function () {
     }
   };
 
-  getUser(email, createLevels);
+  getUser(id, createLevels);
 };
 
 Menu.prototype._createSinglePage = function () {
@@ -107,9 +107,22 @@ Menu.prototype._createSinglePage = function () {
   this.backButton = this.__createBackButton(backCallback.bind(this));
   this.addChild(this.backButton);
 
+  // player level
+  this.playerLevelText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.2,
+    `Player level: ${this.userInfo.level || 1}`,
+    { fill: '#fff', fontSize: 25 }
+  );
+  this.addChild(this.playerLevelText);
+
   this.__createSingleLevels();
 };
 
 Menu.prototype._removeSinglePage = function () {
   this.removeChild(this.backButton);
+  this.removeChild(this.playerLevelText);
+  for (const singleLevel of this.singleLevels) {
+    this.removeChild(singleLevel);
+  }
 };

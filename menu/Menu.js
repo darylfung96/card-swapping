@@ -38,21 +38,21 @@ Menu.prototype._createBackground = function () {
 };
 
 Menu.prototype.__createTitle = function () {
-  this.title = this.__createText(
-    'CardSwap',
-    { fill: '#fff', fontSize: 45 },
+  this.title = ButtonFactoryText(
     this.screenWidth * 0.5,
-    this.screenHeight * 0.1
+    this.screenHeight * 0.1,
+    'CardSwap',
+    { fill: '#fff', fontSize: 45 }
   );
   this.addChild(this.title);
 };
 
 Menu.prototype.__createBackButton = function (backCallback) {
-  const backButton = this.__createText(
-    'back',
-    { fill: '#fff', fontSize: 20 },
+  const backButton = ButtonFactoryText(
     this.screenWidth * 0.1,
     this.screenHeight * 0.1,
+    'back',
+    { fill: '#fff', fontSize: 20 },
     backCallback
   );
   return backButton;
@@ -69,24 +69,24 @@ Menu.prototype.__createMainTexts = function () {
     callbackFunc();
   };
 
-  this.playGameText = this.__createText(
+  this.playGameText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.4,
     'Play Game',
     {
       fill: '#fff',
       fontSize: 30,
     },
-    this.screenWidth * 0.5,
-    this.screenHeight * 0.4,
     clickCallback.bind(this, 'playgame')
   );
-  this.leaderboardText = this.__createText(
+  this.leaderboardText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.5,
     'Leaderboards',
     {
       fill: '#fff',
       fontSize: 30,
-    },
-    this.screenWidth * 0.5,
-    this.screenHeight * 0.5
+    }
   );
 
   this.addChild(this.playGameText);
@@ -96,15 +96,15 @@ Menu.prototype.__createMainTexts = function () {
 Menu.prototype.__createLogoutText = function () {
   const self = this;
   const logoutCallback = function () {
-    setCookie('email', '', -1);
+    setCookie('id', '', -1);
     self._removeMainPage();
     self._createLoginPage();
   };
-  this.logoutText = this.__createText(
-    'Logout',
-    { fill: '#fff', fontSize: 20 },
+  this.logoutText = ButtonFactoryText(
     this.screenWidth * 0.9,
     this.screenHeight * 0.1,
+    'Logout',
+    { fill: '#fff', fontSize: 20 },
     logoutCallback
   );
   this.addChild(this.logoutText);
@@ -128,16 +128,17 @@ Menu.prototype._initialize = function () {
   this._createBackground();
   this.__createTitle();
 
-  const email = getCookie('email');
+  const id = getCookie('id');
 
-  const getUserCallback = function (userInfo) {
-    this.userInfo = userInfo;
-    this._createMainPage();
+  const getUserCallback = function (data) {
+    if (data.success) {
+      this.userInfo = data.userInfo;
+      this._createMainPage();
+    }
   };
-
-  if (!email) {
+  if (!id) {
     this._createLoginPage();
   } else {
-    getUser(email, getUserCallback.bind(this));
+    getUser(id, getUserCallback.bind(this));
   }
 };
