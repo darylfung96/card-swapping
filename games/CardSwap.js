@@ -621,16 +621,21 @@ CardSwap.prototype._calculateScore = function () {
 
   this.score = totalScore;
 
-  // update user level (if user exceed 70% of the max score)
+  // update user level
   const scoreThreshold = Math.floor(this.allTargetCards.length * 3 * 0.7);
+  // if user exceed 70% of the max score
   if (this.score > scoreThreshold) {
     if (this.userInfo.level < this.difficulty + 1)
       this.userInfo.level = this.difficulty + 1;
-    this.userInfo.timesPlayed += 1;
-    updateUser(this.userInfo, (data) => {
-      if (!data.success) console.log('error updating user information');
-    });
   }
+  this.userInfo.timesPlayed += 1;
+  updateUser(this.userInfo, (data) => {
+    if (!data.success) console.log('error updating user information');
+  });
+  updateLeaderboard(this.userInfo.id, this.userInfo.timesPlayed, (data) => {
+    console.log(data);
+    if (!data.success) console.log('error updating leaderboard');
+  });
 
   // show the actual score on the scoreText
   if (this.scoreText) {
@@ -669,15 +674,18 @@ CardSwap.prototype._calculateScore = function () {
 
         // congratulate and unlock level
         if (self.score > scoreThreshold) {
-          const unlockLevelText = new PIXI.Text(
-            `You unlock level ${self.difficulty + 1}!`,
-            { fill: '#fff', fontSize: 35 }
-          );
-          unlockLevelText.x = self.screenWidth * 0.4;
-          unlockLevelText.y = self.screenHeight * 0.2;
-          unlockLevelText.anchor.set(0.5);
-          self.addChild(unlockLevelText);
-
+          // show user that they unlock next level if their level is current level
+          if (self.userInfo.level <= self.difficulty + 1) {
+            const unlockLevelText = new PIXI.Text(
+              `You unlock level ${self.difficulty + 1}!`,
+              { fill: '#fff', fontSize: 35 }
+            );
+            unlockLevelText.x = self.screenWidth * 0.4;
+            unlockLevelText.y = self.screenHeight * 0.2;
+            unlockLevelText.anchor.set(0.5);
+            self.addChild(unlockLevelText);
+          }
+          // create next level button
           const goNextLevelText = ButtonFactoryText(
             self.screenWidth * 0.4,
             self.screenHeight * 0.5,
