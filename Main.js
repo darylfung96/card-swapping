@@ -6,18 +6,28 @@ function Main() {
   this.width = document.getElementById('game-canvas').width;
   this.height = document.getElementById('game-canvas').height;
 
-  this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
+  this.renderer = PIXI.autoDetectRenderer({
+    width: this.width,
+    height: this.height,
     view: document.getElementById('game-canvas'),
   });
 
+  const self = this;
+  const startCallback = function (difficulty) {
+    self.startGameCallback(difficulty);
+  };
   // create splash screen to render
-  this.renderingContainer = new SplashScreen(
-    this.width,
-    this.height,
-    this.startGameCallback.bind(this)
-  );
+  this.renderingContainer = new Menu(this.width, this.height, startCallback);
   requestAnimationFrame(this.update.bind(this));
 }
+
+/**
+ * update is a function that loop updates for pixijs to render
+ */
+Main.prototype.update = function () {
+  this.renderer.render(this.renderingContainer.self);
+  requestAnimationFrame(this.update.bind(this));
+};
 
 /**
  * getUrlParameter receives the query parameter from the url
@@ -51,8 +61,7 @@ function createRandomString(length) {
 /**
  * startGameCallback is a function that starts the CardSwap game by changing the renderingContainer inside Main class
  */
-Main.prototype.startGameCallback = function () {
-  const difficulty = parseInt(getUrlParameter('difficulty')) || 1;
+Main.prototype.startGameCallback = function (difficulty) {
   let seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
   let numPlayers = getUrlParameter('numPlayers') || null;
@@ -82,12 +91,4 @@ Main.prototype.startGameCallback = function () {
       npc
     );
   }
-};
-
-/**
- * update is a function that loop updates for pixijs to render
- */
-Main.prototype.update = function () {
-  this.renderer.render(this.renderingContainer.render);
-  requestAnimationFrame(this.update.bind(this));
 };

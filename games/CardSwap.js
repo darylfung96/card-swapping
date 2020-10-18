@@ -10,7 +10,7 @@
 function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
   GameContainer.call(this, screenWidth, screenHeight);
 
-  this.render = this; // return the rendering container, for this class it is "this"
+  this.self = this; // return the rendering container, for this class it is "this"
 
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;

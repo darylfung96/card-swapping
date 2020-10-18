@@ -7,7 +7,7 @@ function SplashScreen(width, height, startGameCallback) {
   PIXI.Container.call(this);
   this.startGameCallback = startGameCallback;
 
-  this.render = this;
+  this.self = this;
 
   this.screenWidth = width;
   this.screenHeight = height;
@@ -32,7 +32,7 @@ SplashScreen.prototype._initialize = function () {
     fontWeight: 'bold',
     align: 'center',
   });
-  this.title.x = this.screenWidth * 0.05;
+  this.title.x = this.screenWidth * 0.02;
   this.title.y = this.screenHeight * 0.2;
 
   this.ruleTitle = new PIXI.Text('Rules:', {
@@ -41,7 +41,7 @@ SplashScreen.prototype._initialize = function () {
     fontWeight: 'bold',
     align: 'center',
   });
-  this.ruleTitle.x = this.screenWidth * 0.1;
+  this.ruleTitle.x = this.screenWidth * 0.05;
   this.ruleTitle.y = this.screenHeight * 0.3;
 
   this.pointsText = new PIXI.Text(
@@ -56,7 +56,7 @@ SplashScreen.prototype._initialize = function () {
       align: 'left',
     }
   );
-  this.pointsText.x = this.screenWidth * 0.1;
+  this.pointsText.x = this.screenWidth * 0.05;
   this.pointsText.y = this.screenHeight * 0.35;
 
   this.movementTitle = new PIXI.Text('Movement:', {
@@ -65,7 +65,7 @@ SplashScreen.prototype._initialize = function () {
     fontWeight: 'bold',
     align: 'center',
   });
-  this.movementTitle.x = this.screenWidth * 0.1;
+  this.movementTitle.x = this.screenWidth * 0.05;
   this.movementTitle.y = this.screenHeight * 0.5;
 
   this.movementPointText = new PIXI.Text(
@@ -77,7 +77,7 @@ SplashScreen.prototype._initialize = function () {
       align: 'left',
     }
   );
-  this.movementPointText.x = this.screenWidth * 0.1;
+  this.movementPointText.x = this.screenWidth * 0.05;
   this.movementPointText.y = this.screenHeight * 0.55;
 
   this.playText = ButtonFactoryText(
