@@ -6,6 +6,8 @@ function Menu(width, height, startGameCallback) {
 
   this.startGameCallback = startGameCallback;
 
+  this.userInfo = null;
+
   this.self = this;
   this._initialize();
 }
@@ -127,9 +129,15 @@ Menu.prototype._initialize = function () {
   this.__createTitle();
 
   const email = getCookie('email');
+
+  const getUserCallback = function (userInfo) {
+    this.userInfo = userInfo;
+    this._createMainPage();
+  };
+
   if (!email) {
     this._createLoginPage();
   } else {
-    getUser(email, this._createMainPage.bind(this));
+    getUser(email, getUserCallback.bind(this));
   }
 };

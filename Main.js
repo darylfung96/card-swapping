@@ -12,12 +12,11 @@ function Main() {
     view: document.getElementById('game-canvas'),
   });
 
-  const self = this;
-  const startCallback = function (difficulty) {
-    self.startGameCallback(difficulty);
-  };
-  // create splash screen to render
-  this.renderingContainer = new Menu(this.width, this.height, startCallback);
+  this.renderingContainer = new Menu(
+    this.width,
+    this.height,
+    this.startGameCallback.bind(this)
+  );
   requestAnimationFrame(this.update.bind(this));
 }
 
@@ -59,9 +58,20 @@ function createRandomString(length) {
 }
 
 /**
+ * this function returns to main menu
+ */
+Main.prototype.returnMenuCallback = function () {
+  this.renderingContainer = new Menu(
+    this.width,
+    this.height,
+    this.startGameCallback.bind(this)
+  );
+};
+
+/**
  * startGameCallback is a function that starts the CardSwap game by changing the renderingContainer inside Main class
  */
-Main.prototype.startGameCallback = function (difficulty) {
+Main.prototype.startGameCallback = function (difficulty, userInfo) {
   let seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
   let numPlayers = getUrlParameter('numPlayers') || null;
@@ -88,7 +98,10 @@ Main.prototype.startGameCallback = function (difficulty) {
       this.height,
       difficulty,
       seed,
-      npc
+      npc,
+      userInfo,
+      this.startGameCallback.bind(this),
+      this.returnMenuCallback.bind(this)
     );
   }
 };

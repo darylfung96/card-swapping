@@ -6,11 +6,27 @@
  * @param {int} difficulty - the difficulty of the game
  * @param {string} seed - the seed provided to randomize the card swapping
  * @param {string} npc - if there is an npc that player is playing against (hard, medium, easy)
+ * @param {object} userInfo - the information of the current user
+ * @param {function} startGameCallback - the function callback to restart the game
+ * @param {function} returnMenuCallback - the function callback to quit the game and return to menu
  */
-function CardSwap(screenWidth, screenHeight, difficulty, seed, npc) {
+function CardSwap(
+  screenWidth,
+  screenHeight,
+  difficulty,
+  seed,
+  npc,
+  userInfo,
+  startGameCallback,
+  returnMenuCallback
+) {
   GameContainer.call(this, screenWidth, screenHeight);
 
   this.self = this; // return the rendering container, for this class it is "this"
+  this.userInfo = userInfo;
+  this.startGameCallback = startGameCallback;
+  this.returnMenuCallback = returnMenuCallback;
+  console.log(this.userInfo);
 
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
@@ -630,6 +646,7 @@ CardSwap.prototype._calculateScore = function () {
         scoreTextTargetX - self.scoreText.x < 3 &&
         scoreTextTargetY - self.scoreText.y < 3
       ) {
+        // after finish increasing the score size
         clearInterval(increaseScoreTextInterval);
         for (const swapCard of self.allSwapCards) {
           self.removeChild(swapCard.guessingSprite);
@@ -664,6 +681,25 @@ CardSwap.prototype._calculateScore = function () {
           winLoseText.anchor.set(0.5);
           self.addChild(winLoseText);
         }
+
+        self.playAgainText = ButtonFactoryText(
+          self.screenWidth * 0.4,
+          self.screenHeight * 0.5,
+          'Play Again',
+          { fill: '#fff', fontSize: 35 },
+          () => {
+            self.startGameCallback(self.difficulty, self.userInfo);
+          }
+        );
+        self.addChild(self.playAgainText);
+        self.exitText = ButtonFactoryText(
+          self.screenWidth * 0.4,
+          self.screenHeight * 0.6,
+          'Exit Game',
+          { fill: '#fff', fontSize: 35 },
+          self.returnMenuCallback
+        );
+        self.addChild(self.exitText);
       }
     }, 10);
   };

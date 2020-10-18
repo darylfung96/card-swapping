@@ -73,17 +73,17 @@ function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
   button.anchor.set(0.5);
 
   // mouse handler
-  backButtonMouseOver = function () {
-    this.setStyle({ ...textStyle, fontStyle: 'italic' });
+  const backButtonMouseOver = function () {
+    this.style = { ...textStyle, fontStyle: 'italic' };
   };
-  backButtonMouseOut = function () {
-    this.setStyle({ ...textStyle, fontStyle: 'normal' });
+  const backButtonMouseOut = function () {
+    this.style = { ...textStyle, fontStyle: 'normal' };
   };
-  backButtonMouseDown = function () {
+  const backButtonMouseDown = function () {
     this.scale.x = 0.9;
     this.scale.y = 0.9;
   };
-  backButtonMouseUp = function (clickCallback) {
+  const backButtonMouseUp = function (clickCallback) {
     this.scale.x = 1;
     this.scale.y = 1;
 
