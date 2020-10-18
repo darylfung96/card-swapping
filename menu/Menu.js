@@ -131,10 +131,12 @@ Menu.prototype._initialize = function () {
   const id = getCookie('id');
 
   const getUserCallback = function (data) {
-    if (data.success) {
-      this.userInfo = data.userInfo;
-      this._createMainPage();
+    if (!data.success) {
+      this._createLoginPage();
+      return;
     }
+    this.userInfo = data.userInfo;
+    this._createMainPage();
   };
   if (!id) {
     this._createLoginPage();

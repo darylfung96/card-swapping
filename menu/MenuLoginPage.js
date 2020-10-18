@@ -15,6 +15,7 @@ Menu.prototype._enterMainPage = function () {
       return;
     }
     setCookie('id', id, 30);
+    this.userInfo = data.userInfo;
     this._removeLoginPage();
     this._createMainPage();
   };

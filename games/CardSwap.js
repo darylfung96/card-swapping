@@ -626,6 +626,7 @@ CardSwap.prototype._calculateScore = function () {
   if (this.score > scoreThreshold) {
     if (this.userInfo.level < this.difficulty + 1)
       this.userInfo.level = this.difficulty + 1;
+    this.userInfo.timesPlayed += 1;
     updateUser(this.userInfo, (data) => {
       if (!data.success) console.log('error updating user information');
     });
