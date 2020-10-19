@@ -5,6 +5,9 @@ Menu.prototype._enterLoginPage = function () {
 };
 
 Menu.prototype._createUser = function () {
+  this.removeChild(this.errorText);
+  this.removeChild(this.successText);
+
   const createUserCallback = function (data) {
     if (!data.success) {
       this.errorText = new PIXI.Text(`Error: ${data.msg}`, {
@@ -15,18 +18,30 @@ Menu.prototype._createUser = function () {
       this.errorText.y = this.screenHeight * 0.3;
       this.errorText.anchor.set(0.5);
       this.addChild(this.errorText);
+    } else {
+      // successfully created user
+      this.successText = new PIXI.Text('Successfully created user', {
+        fill: '#8cff82',
+        fontSize: 25,
+      });
+      this.successText.x = this.screenWidth * 0.5;
+      this.successText.y = this.screenHeight * 0.3;
+      this.successText.anchor.set(0.5);
+      this.addChild(this.successText);
     }
+  };
 
-    // successfully created user
-    this.successText = new PIXI.Text('Successfully created user', {
-      fill: '#8cff82',
+  if (!this.idText.text) {
+    this.errorText = new PIXI.Text('Error: Please provide an ID', {
+      fill: 'red',
       fontSize: 25,
     });
-    this.successText.x = this.screenWidth * 0.5;
-    this.successText.y = this.screenHeight * 0.3;
-    this.successText.anchor.set(0.5);
-    this.addChild(this.successText);
-  };
+    this.errorText.x = this.screenWidth * 0.5;
+    this.errorText.y = this.screenHeight * 0.3;
+    this.errorText.anchor.set(0.5);
+    this.addChild(this.errorText);
+    return;
+  }
 
   createUser(this.idText.text, createUserCallback.bind(this));
 };

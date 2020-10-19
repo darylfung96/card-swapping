@@ -1,17 +1,19 @@
 <?php
-include 'returnResponse.php';
+include '../returnResponse.php';
+include '../common.php';
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 
-$id = $_GET['id'];
-$name = substr($id, 0, strpos($id, "@"));
-$userFileDir = "fileStorage/{$id}/";
+$userInfo = json_decode($_POST['userInfo']);  
+$userFileDir = "{$FILE_STORAGE_DIR}/{$userInfo->id}";
 $userFilename = "{$userFileDir}/info.txt";
 
 if (file_exists($userFilename)) {
-  $userInfo = file_get_contents($userFilename);
-  $userInfo = json_decode($userInfo);
+  // put file content
+  file_put_contents($userFilename, json_encode($userInfo)) or die('Unable to update user information');
+
   $returnValue->userInfo = $userInfo;
   $returnValue = generateResponse($returnValue, "Successfully accessed user data", true);
   echo json_encode($returnValue);

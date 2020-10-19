@@ -632,10 +632,24 @@ CardSwap.prototype._calculateScore = function () {
   updateUser(this.userInfo, (data) => {
     if (!data.success) console.log('error updating user information');
   });
-  updateLeaderboard(this.userInfo.id, this.userInfo.timesPlayed, (data) => {
-    console.log(data);
-    if (!data.success) console.log('error updating leaderboard');
-  });
+  updateLeaderboard(
+    this.userInfo.id,
+    'timesPlayed',
+    null,
+    this.userInfo.timesPlayed,
+    (data) => {
+      if (!data.success) console.log('error updating leaderboard');
+    }
+  );
+  updateLeaderboard(
+    this.userInfo.id,
+    'highScore',
+    this.difficulty,
+    this.score,
+    (data) => {
+      if (!data.success) console.log('error updating leaderboard');
+    }
+  );
 
   // show the actual score on the scoreText
   if (this.scoreText) {

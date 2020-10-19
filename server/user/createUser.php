@@ -1,11 +1,13 @@
 <?php
-include 'returnResponse.php';
+include '../returnResponse.php';
+include '../common.php';
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 
 $id = $_POST['id'];
-$userFileDir = "fileStorage/{$id}/";
+$userFileDir = "${FILE_STORAGE_DIR}/{$id}/";
 $userFilename = "{$userFileDir}/info.txt";
 
 $userInfo->id = $id;
@@ -15,7 +17,7 @@ $userInfo->level = 1;
 $returnValue->userInfo = $userInfo;
 $returnValue->msg = "";
 
-if (file_exists("fileStorage/{$id}/")) {
+if (file_exists("$userFileDir")) {
   $returnValue = generateResponse($returnValue, "ID already exist", false);
   echo json_encode($returnValue);
 return;

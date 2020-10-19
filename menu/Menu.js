@@ -62,7 +62,10 @@ Menu.prototype.__createBackButton = function (backCallback) {
 
 Menu.prototype.__createMainTexts = function () {
   const clickCallback = function (page) {
-    const pageDict = { playgame: this._createPlayPage.bind(this) };
+    const pageDict = {
+      playgame: this._createPlayPage.bind(this),
+      leaderboard: this._createLeaderboardPage.bind(this),
+    };
 
     const callbackFunc = pageDict[page];
     this._removeMainPage();
@@ -86,7 +89,8 @@ Menu.prototype.__createMainTexts = function () {
     {
       fill: '#fff',
       fontSize: 30,
-    }
+    },
+    clickCallback.bind(this, 'leaderboard')
   );
 
   this.addChild(this.playGameText);
@@ -120,8 +124,6 @@ Menu.prototype._createMainPage = function () {
   this.__createMainTexts();
   this.__createLogoutText();
 };
-
-//========================= leaderboard =========================//
 
 //========================= initialize =========================//
 Menu.prototype._initialize = function () {

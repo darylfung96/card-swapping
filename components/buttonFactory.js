@@ -74,10 +74,10 @@ function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
 
   // mouse handler
   const backButtonMouseOver = function () {
-    this.style = { ...textStyle, fontStyle: 'italic' };
+    this.style = { ...this.style, fontStyle: 'italic' };
   };
   const backButtonMouseOut = function () {
-    this.style = { ...textStyle, fontStyle: 'normal' };
+    this.style = { ...this.style, fontStyle: 'normal' };
   };
   const backButtonMouseDown = function () {
     this.scale.x = 0.9;

@@ -1,5 +1,5 @@
 function createUser(id, callback) {
-  $.post('server/createUser.php', { id }, (data) => {
+  $.post('server/user/createUser.php', { id }, (data) => {
     const json_data = JSON.parse(data);
     if (callback) callback(json_data);
   });
@@ -7,14 +7,14 @@ function createUser(id, callback) {
 
 function updateUser(userInfo, callback) {
   const str_userInfo = JSON.stringify(userInfo);
-  $.post('server/updateUser.php', { userInfo: str_userInfo }, (data) => {
+  $.post('server/user/updateUser.php', { userInfo: str_userInfo }, (data) => {
     const json_data = JSON.parse(data);
     if (callback) callback(json_data);
   });
 }
 
 function getUser(id, callback) {
-  $.get('server/getUser.php', { id }, (data) => {
+  $.get('server/user/getUser.php', { id }, (data) => {
     const json_data = JSON.parse(data);
     if (callback) callback(json_data);
   });
