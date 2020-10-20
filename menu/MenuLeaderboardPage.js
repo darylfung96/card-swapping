@@ -1,26 +1,60 @@
 //========================= leaderboard =========================//
-
+const MAX_ITEM_PER_PAGE = 5;
 //------------------------- most played -------------------------//
-Menu.prototype._listMostPlayed = function (data) {
+Menu.prototype._getMostPlayed = function (data) {
   if (!data.success) {
     console.error('error obtaining most played leaderboard data');
     return;
   }
+
+  // if already queried the leaderboard then we just list them instead of processing them
+  if (this.processedMostPlayedLeaderboard) {
+    this.currentPage = 0;
+    this._listMostPlayed(this.currentPage);
+    return;
+  }
+
+  // create list of player keys, so we can have pages (page 1, page 2) in case if there are too many players
+  this.processedMostPlayedLeaderboard = []; // [[1,2,3,4,5], [6,7,8,9,10], ...], based on MAX_ITEM_PER_PAGE=5
+  const playerKeys = Object.keys(data.leaderboard);
+
+  const totalPages = Math.ceil(playerKeys.length / MAX_ITEM_PER_PAGE);
+  for (let i = 0; i < totalPages; i++) {
+    this.processedMostPlayedLeaderboard.push([]);
+    for (let j = 0; j < MAX_ITEM_PER_PAGE; j++) {
+      // if over the total length then we break out
+      if (i * MAX_ITEM_PER_PAGE + j >= playerKeys.length) break;
+
+      const currentPlayer = playerKeys[i * MAX_ITEM_PER_PAGE + j];
+      this.processedMostPlayedLeaderboard[i].push({
+        [currentPlayer]: data.leaderboard[currentPlayer],
+      });
+    }
+  }
+  // list most played after getting them
+  this.currentPage = 0;
+  this._listMostPlayed(this.currentPage);
+};
+Menu.prototype._listMostPlayed = function (pageIndex) {
   // if most played already listed, we don't have to do anything here
   if (this.mostPlayedChildren) return;
 
-  // remove list of high score if applicable
-  this._removeHighScores();
+  // remove list of highest level if applicable
+  this._removeHighestLevel();
 
   this.mostPlayedChildren = [];
 
-  this.mostPlayedLeaderboard = data.leaderboard;
-
-  const mostPlayedLeftX = this.screenWidth * 0.2;
+  const rankX = this.screenWidth * 0.1;
+  const mostPlayedLeftX = this.screenWidth * 0.3;
   const mostPlayedRightX = this.screenWidth * 0.8;
   const mostPlayedStartY = this.screenHeight * 0.3;
   const spacingY = this.screenHeight * 0.05;
 
+  // list the children
+  this.rankText = ButtonFactoryText(rankX, mostPlayedStartY, 'Rank', {
+    fill: '#fff',
+    fontSize: 25,
+  });
   this.playerIdText = ButtonFactoryText(
     mostPlayedLeftX,
     mostPlayedStartY,
@@ -33,30 +67,74 @@ Menu.prototype._listMostPlayed = function (data) {
     'Times Played',
     { fill: '#fff', fontSize: 25 }
   );
+  this.addChild(this.rankText);
   this.addChild(this.playerIdText);
   this.addChild(this.mostPlayedTitleText);
+  this.mostPlayedChildren.push(this.rankText);
   this.mostPlayedChildren.push(this.playerIdText);
   this.mostPlayedChildren.push(this.mostPlayedTitleText);
-
-  const mostPlayedKeys = Object.keys(this.mostPlayedLeaderboard);
-  for (let i = 0; i < mostPlayedKeys.length; i++) {
+  for (
+    let i = 0;
+    i < this.processedMostPlayedLeaderboard[pageIndex].length;
+    i++
+  ) {
+    const rank = ButtonFactoryText(
+      rankX,
+      mostPlayedStartY + spacingY * (i + 1),
+      pageIndex * MAX_ITEM_PER_PAGE + i + 1,
+      { fill: '#fff', fontSize: 25 }
+    );
     const currentPlayer = ButtonFactoryText(
       mostPlayedLeftX,
       mostPlayedStartY + spacingY * (i + 1),
-      mostPlayedKeys[i],
+      Object.keys(this.processedMostPlayedLeaderboard[pageIndex][i])[0],
       { fill: '#fff', fontSize: 25 }
     );
     const currentPlayerPlayed = ButtonFactoryText(
       mostPlayedRightX,
       mostPlayedStartY + spacingY * (i + 1),
-      this.mostPlayedLeaderboard[mostPlayedKeys[i]],
+      Object.values(this.processedMostPlayedLeaderboard[pageIndex][i])[0],
       { fill: '#fff', fontSize: 25 }
     );
 
+    this.addChild(rank);
     this.addChild(currentPlayer);
     this.addChild(currentPlayerPlayed);
+    this.mostPlayedChildren.push(rank);
     this.mostPlayedChildren.push(currentPlayer);
     this.mostPlayedChildren.push(currentPlayerPlayed);
+  }
+
+  // list the button for previous page
+  const prevButtonCallback = function () {
+    this._removeMostPlayed();
+    this._listMostPlayed(pageIndex - 1);
+  };
+  if (pageIndex > 0) {
+    this.prevButton = ButtonFactoryText(
+      rankX,
+      this.screenHeight * 0.7,
+      'Previous',
+      { fill: '#fff', fontSize: 25 },
+      prevButtonCallback.bind(this)
+    );
+    this.addChild(this.prevButton);
+  }
+
+  // list the button for next page
+  const nextButtonCallback = function () {
+    this._removeMostPlayed();
+    this._listMostPlayed(pageIndex + 1);
+  };
+  if (pageIndex < this.processedMostPlayedLeaderboard.length - 1) {
+    this.nextButton = ButtonFactoryText(
+      mostPlayedRightX,
+      this.screenHeight * 0.7,
+      'Next',
+      { fill: '#fff', fontSize: 25 },
+      nextButtonCallback.bind(this)
+    );
+    this.addChild(this.nextButton);
   }
 };
 Menu.prototype._removeMostPlayed = function () {
@@ -66,103 +144,173 @@ Menu.prototype._removeMostPlayed = function () {
     this.removeChild(child);
   }
 
+  this.removeChild(this.prevButton);
+  this.removeChild(this.nextButton);
+
   this.mostPlayedChildren = null;
 };
 
-Menu.prototype._listHighScores = function (data) {
+//------------------------- highest level -------------------------//
+Menu.prototype._getHighestLevel = function (data) {
   if (!data.success) {
     console.error('error obtaining most played leaderboard data');
     return;
   }
-  // if high score is already listen, then we don't have to do anything here
-  if (this.highScoreChildren) return;
+  this.currentPage = 0;
+  // if there is already highest level queried then we just return them instead of re-processing them
+  if (this.processedHighestLevelLeaderboard) {
+    this._listHighestLevel(this.currentPage);
+    return;
+  }
+
+  this.processedHighestLevelLeaderboard = [];
+  const playerKeys = Object.keys(data.leaderboard);
+  const totalPages = Math.ceil(playerKeys.length / MAX_ITEM_PER_PAGE);
+  for (let i = 0; i < totalPages; i++) {
+    this.processedHighestLevelLeaderboard.push([]);
+    for (let j = 0; j < MAX_ITEM_PER_PAGE; j++) {
+      // if over the total length we get out of the loop
+      if (i * MAX_ITEM_PER_PAGE + j > playerKeys.length - 1) break;
+
+      const currentPlayer = playerKeys[i * MAX_ITEM_PER_PAGE + j];
+      const level = data.leaderboard[currentPlayer];
+      this.processedHighestLevelLeaderboard[i].push({ [currentPlayer]: level });
+    }
+  }
+
+  this._listHighestLevel(this.currentPage);
+};
+Menu.prototype._listHighestLevel = function (pageIndex) {
+  // if highest level is already listed, then we don't have to do anything here
+  if (this.highestLevelChildren) return;
 
   // remove list of most played if applicable
   this._removeMostPlayed();
 
-  this.highScoreChildren = [];
+  this.highestLevelChildren = [];
 
-  this.highScoreLeaderboard = data.leaderboard;
-
-  const highScoreLeftX = this.screenWidth * 0.2;
-  const highScoreMiddleX = this.screenWidth * 0.5;
-  const highScoreRightX = this.screenWidth * 0.8;
-  const highScoreStartY = this.screenHeight * 0.3;
+  const rankX = this.screenWidth * 0.1;
+  const highestLevelLeftX = this.screenWidth * 0.3;
+  const highestLevelRightX = this.screenWidth * 0.8;
+  const highestLevelStartY = this.screenHeight * 0.3;
   const spacingY = this.screenHeight * 0.05;
 
+  this.rankText = ButtonFactoryText(rankX, highestLevelStartY, 'Rank', {
+    fill: '#fff',
+    fontSize: 25,
+  });
   this.playerIdText = ButtonFactoryText(
-    highScoreLeftX,
-    highScoreStartY,
+    highestLevelLeftX,
+    highestLevelStartY,
     'Player ID',
     { fill: '#fff', fontSize: 25 }
   );
   this.levelText = ButtonFactoryText(
-    highScoreMiddleX,
-    highScoreStartY,
+    highestLevelRightX,
+    highestLevelStartY,
     'Level',
     { fill: '#fff', fontSize: 25 }
   );
-  this.highScoreTitleText = ButtonFactoryText(
-    highScoreRightX,
-    highScoreStartY,
-    'Score',
-    { fill: '#fff', fontSize: 25 }
-  );
+
+  this.addChild(this.rankText);
   this.addChild(this.playerIdText);
   this.addChild(this.levelText);
-  this.addChild(this.highScoreTitleText);
-  this.highScoreChildren.push(this.playerIdText);
-  this.highScoreChildren.push(this.levelText);
-  this.highScoreChildren.push(this.highScoreTitleText);
+  this.highestLevelChildren.push(this.rankText);
+  this.highestLevelChildren.push(this.playerIdText);
+  this.highestLevelChildren.push(this.levelText);
 
-  const highScoreKeys = Object.keys(this.highScoreLeaderboard);
-  let currentItem = 1;
-  for (let i = highScoreKeys.length - 1; i >= 0; i--) {
-    const currentLevel = highScoreKeys[i];
-    const users = Object.keys(this.highScoreLeaderboard[currentLevel]);
-    for (let j = 0; j < users.length; j++) {
-      const user = users[j];
-      const score = this.highScoreLeaderboard[currentLevel][user];
+  for (
+    let currentPage = 0;
+    currentPage < this.processedHighestLevelLeaderboard.length;
+    currentPage++
+  ) {
+    for (
+      let currentIndex = 0;
+      currentIndex < this.processedHighestLevelLeaderboard[currentPage].length;
+      currentIndex++
+    ) {
+      const currentPlayer = Object.keys(
+        this.processedHighestLevelLeaderboard[currentPage][currentIndex]
+      )[0];
+      const level = this.processedHighestLevelLeaderboard[currentPage][
+        currentIndex
+      ][currentPlayer];
+      const rank = currentPage * MAX_ITEM_PER_PAGE + currentIndex + 1;
 
-      const userText = ButtonFactoryText(
-        highScoreLeftX,
-        highScoreStartY + spacingY * currentItem,
-        user,
+      const rankText = ButtonFactoryText(
+        rankX,
+        highestLevelStartY + spacingY * (currentIndex + 1),
+        rank,
+        { fill: '#fff', fontSize: 25 }
+      );
+      const playerText = ButtonFactoryText(
+        highestLevelLeftX,
+        highestLevelStartY + spacingY * (currentIndex + 1),
+        currentPlayer,
         { fill: '#fff', fontSize: 25 }
       );
       const levelText = ButtonFactoryText(
-        highScoreMiddleX,
-        highScoreStartY + spacingY * currentItem,
-        currentLevel,
-        { fill: '#fff', fontSize: 25 }
-      );
-      const scoreText = ButtonFactoryText(
-        highScoreRightX,
-        highScoreStartY + spacingY * currentItem,
-        score,
+        highestLevelRightX,
+        highestLevelStartY + spacingY * (currentIndex + 1),
+        level,
         { fill: '#fff', fontSize: 25 }
       );
 
-      this.addChild(userText);
+      this.addChild(rankText);
+      this.addChild(playerText);
       this.addChild(levelText);
-      this.addChild(scoreText);
-      this.highScoreChildren.push(userText);
-      this.highScoreChildren.push(levelText);
-      this.highScoreChildren.push(scoreText);
-
-      currentItem++;
+      this.highestLevelChildren.push(rankText);
+      this.highestLevelChildren.push(playerText);
+      this.highestLevelChildren.push(levelText);
     }
   }
-};
-Menu.prototype._removeHighScores = function () {
-  if (!this.highScoreChildren) return;
 
-  for (const child of this.highScoreChildren) {
+  // list the button for previous page
+  const prevButtonCallback = function () {
+    this._removeHighestLevel();
+    this._listHighestLevel(pageIndex - 1);
+  };
+  if (pageIndex > 0) {
+    this.prevButton = ButtonFactoryText(
+      rankX,
+      this.screenHeight * 0.7,
+      'Previous',
+      { fill: '#fff', fontSize: 25 },
+      prevButtonCallback.bind(this)
+    );
+    this.addChild(this.prevButton);
+  }
+
+  // list the button for next page
+  const nextButtonCallback = function () {
+    this._removeHighestLevel();
+    this._listHighestLevel(pageIndex + 1);
+  };
+  if (pageIndex < this.processedHighestLevelLeaderboard.length - 1) {
+    this.nextButton = ButtonFactoryText(
+      mostPlayedRightX,
+      this.screenHeight * 0.7,
+      'Next',
+      { fill: '#fff', fontSize: 25 },
+      nextButtonCallback.bind(this)
+    );
+    this.addChild(this.nextButton);
+  }
+};
+Menu.prototype._removeHighestLevel = function () {
+  if (!this.highestLevelChildren) return;
+
+  for (const child of this.highestLevelChildren) {
     this.removeChild(child);
   }
 
-  this.highScoreChildren = null;
+  this.removeChild(this.prevButton);
+  this.removeChild(this.nextButton);
+
+  this.highestLevelChildren = null;
 };
+
+//------------------------- initialization -------------------------//
 
 Menu.prototype._createLeaderboardPage = function () {
   // create back button
@@ -179,11 +327,11 @@ Menu.prototype._createLeaderboardPage = function () {
       ...this.mostPlayedText.style,
       fontWeight: '600',
     };
-    this.highestScoreText.style = {
-      ...this.highestScoreText.style,
+    this.highestLevelText.style = {
+      ...this.highestLevelText.style,
       fontWeight: '500',
     };
-    getLeaderboard('timesPlayed', this._listMostPlayed.bind(this));
+    getLeaderboard('timesPlayed', this._getMostPlayed.bind(this));
   };
   this.mostPlayedText = ButtonFactoryText(
     this.screenWidth * 0.35,
@@ -194,34 +342,34 @@ Menu.prototype._createLeaderboardPage = function () {
   );
   this.addChild(this.mostPlayedText);
 
-  const highScoreClickCallback = function () {
+  const highestLevelClickCallback = function () {
     this.mostPlayedText.style = {
       ...this.mostPlayedText.style,
       fontWeight: '500',
     };
-    this.highestScoreText.style = {
-      ...this.highestScoreText.style,
+    this.highestLevelText.style = {
+      ...this.highestLevelText.style,
       fontWeight: '600',
     };
-    getLeaderboard('highScore', this._listHighScores.bind(this));
+    getLeaderboard('highestLevel', this._getHighestLevel.bind(this));
   };
-  this.highestScoreText = ButtonFactoryText(
+  this.highestLevelText = ButtonFactoryText(
     this.screenWidth * 0.65,
     this.screenHeight * 0.2,
-    'Highest Score',
+    'Highest Level',
     { fill: '#fff', fontSize: 25, fontWeight: '500' },
-    highScoreClickCallback.bind(this)
+    highestLevelClickCallback.bind(this)
   );
-  this.addChild(this.highestScoreText);
+  this.addChild(this.highestLevelText);
 
   // query for leaderboard
-  getLeaderboard('timesPlayed', this._listMostPlayed.bind(this));
+  getLeaderboard('timesPlayed', this._getMostPlayed.bind(this));
 };
 
 Menu.prototype._removeLeaderboardPage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.mostPlayedText);
-  this.removeChild(this.highestScoreText);
+  this.removeChild(this.highestLevelText);
   this._removeMostPlayed();
-  this._removeHighScores();
+  this._removeHighestLevel();
 };
