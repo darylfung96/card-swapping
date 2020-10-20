@@ -397,10 +397,10 @@ CardSwap.prototype._startSwapping = function () {
     this.isAllSwappingDone = true;
     this.isGuessing = true;
     // start timer for guessing
-    this._createCountdown(20, this._calculateScore.bind(this));
+    this._createCountdown(8, this._calculateScore.bind(this));
   };
   // stop swapping after 20 seconds
-  this._createCountdown(2, setAllSwappingDone.bind(this));
+  this._createCountdown(1, setAllSwappingDone.bind(this));
 
   // poll to make sure swapping is complete before calling more swapping cards
   const self = this;
@@ -621,10 +621,38 @@ CardSwap.prototype._calculateScore = function () {
 
   this.score = totalScore;
 
+  // calculate the user's average 5 most recent game scores including this current one,
+  // if 70% at least, then unlock next level
+  const getUserMostRecentScores = function () {
+    // if empty level information then we create it
+    if (!this.userInfo.levelInformation) {
+      this.userInfo.levelInformation = {};
+      this.userInfo.levelInformation[this.difficulty] = [this.score];
+      return [this.score];
+    }
+
+    // if empty specific level information then we create it too
+    if (!this.userInfo.levelInformation[this.difficulty]) {
+      this.userInfo.levelInformation[this.difficulty] = [this.score];
+      return [this.score];
+    }
+
+    this.userInfo.levelInformation[this.difficulty].push(this.score);
+    if (this.userInfo.levelInformation[this.difficulty].length > 5) {
+      this.userInfo.levelInformation[this.difficulty].shift();
+    }
+
+    return this.userInfo.levelInformation[this.difficulty];
+  };
+
+  const mostRecentScores = getUserMostRecentScores.bind(this)();
+  const avgRecentScores =
+    mostRecentScores.reduce((a, b) => a + b, 0) / mostRecentScores.length;
+
   // update user level
   const scoreThreshold = Math.floor(this.allTargetCards.length * 3 * 0.7);
   // if user exceed 70% of the max score
-  if (this.score > scoreThreshold) {
+  if (mostRecentScores.length > 4 && avgRecentScores >= scoreThreshold) {
     if (this.userInfo.level < this.difficulty + 1)
       this.userInfo.level = this.difficulty + 1;
   }
@@ -686,10 +714,12 @@ CardSwap.prototype._calculateScore = function () {
           self.removeChild(targetCard);
         }
 
-        // congratulate and unlock level
-        if (self.score > scoreThreshold) {
-          // show user that they unlock next level if their level is current level
-          if (self.userInfo.level <= self.difficulty + 1) {
+        if (self.userInfo.level <= self.difficulty + 1) {
+          // congratulate and unlock level if user leveled up
+          if (
+            mostRecentScores.length > 4 &&
+            avgRecentScores >= scoreThreshold
+          ) {
             const unlockLevelText = new PIXI.Text(
               `You unlock level ${self.difficulty + 1}!`,
               { fill: '#fff', fontSize: 35 }
@@ -699,6 +729,9 @@ CardSwap.prototype._calculateScore = function () {
             unlockLevelText.anchor.set(0.5);
             self.addChild(unlockLevelText);
           }
+        } else {
+          // add the next level button since user level is higher already
+
           // create next level button
           const goNextLevelText = ButtonFactoryText(
             self.screenWidth * 0.4,
