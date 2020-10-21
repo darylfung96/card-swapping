@@ -2,6 +2,22 @@
 
 Menu.prototype._createReceiveChallengePage = function () {};
 
+Menu.prototype.__processPlayersToList = function (filteredPlayers) {
+  this.allPlayersPerPage = [];
+  const totalPages = Math.ceil(filteredPlayers.length / MAX_ITEM_PER_PAGE);
+  for (let currentPage = 0; currentPage < totalPages; currentPage++) {
+    this.allPlayersPerPage.push([]);
+    for (let j = 0; j < MAX_ITEM_PER_PAGE; j++) {
+      if (currentPage * MAX_ITEM_PER_PAGE + j >= filteredPlayers.length) break;
+      this.allPlayersPerPage[currentPage].push(
+        filteredPlayers[currentPage * MAX_ITEM_PER_PAGE + j]
+      );
+    }
+  }
+  this.currentPage = 0;
+  this._listSendChallengePlayers(this.currentPage);
+};
+
 Menu.prototype._listSendChallengePlayers = function (pageIndex) {
   // remove existing children;
   if (this.allPlayersPerPageChildren) {
@@ -11,11 +27,14 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
     this.removeChild(this.prevButton);
     this.removeChild(this.nextButton);
   }
+  // don't list any players if no players are found
+  if (this.allPlayersPerPage.length === 0) return;
+
   this.allPlayersPerPageChildren = [];
   const leftX = this.screenWidth * 0.2;
   const middleX = this.screenWidth * 0.5;
   const rightX = this.screenWidth * 0.8;
-  const startingY = this.screenHeight * 0.3;
+  const startingY = this.screenHeight * 0.4;
   const spacingY = this.screenHeight * 0.1;
 
   this.playerNameTitle = ButtonFactoryText(
@@ -83,7 +102,7 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
   if (pageIndex > 0) {
     this.prevButton = ButtonFactoryText(
       this.screenWidth * 0.2,
-      this.screenHeight * 0.8,
+      this.screenHeight * 0.9,
       'Previous',
       { fill: '#fff', fontSize: 25 },
       () => {
@@ -95,7 +114,7 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
   if (pageIndex < this.allPlayersPerPage.length - 1) {
     this.nextButton = ButtonFactoryText(
       this.screenWidth * 0.8,
-      this.screenHeight * 0.8,
+      this.screenHeight * 0.9,
       'Next',
       { fill: '#fff', fontSize: 25 },
       () => {
@@ -113,24 +132,48 @@ Menu.prototype._createSendChallengePage = function () {
   this.backButton = this.__createBackButton(backCallback.bind(this));
   this.addChild(this.backButton);
 
+  const searchInputCallback = function (text) {
+    const filteredPlayers = this.allPlayers.filter((player) => {
+      return Object.keys(player)[0].indexOf(text) !== -1;
+    });
+    this.__processPlayersToList(filteredPlayers);
+  };
+  this.searchInput = new PIXI.TextInput({
+    input: {
+      fontSize: '25px',
+      padding: '12px',
+      height: `${this.screenHeight * 0.05}px`,
+      width: `${this.screenWidth * 0.4}px`,
+      color: '#26272E',
+    },
+    box: {
+      default: {
+        fill: 0xe8e9f3,
+        rounded: 12,
+        stroke: { color: 0xcbcee0, width: 3 },
+      },
+      focused: {
+        fill: 0xe1e3ee,
+        rounded: 12,
+        stroke: { color: 0xabafc6, width: 3 },
+      },
+      disabled: { fill: 0xdbdbdb, rounded: 12 },
+    },
+  });
+  this.searchInput.placeholder = 'Search for player ID';
+  this.searchInput.x = this.screenWidth * 0.5;
+  this.searchInput.y = this.screenHeight * 0.2;
+  this.searchInput.pivot.x = this.searchInput.width / 2;
+  this.searchInput.pivot.y = this.searchInput.height / 2;
+  this.addChild(this.searchInput);
+  this.searchInput.on('input', searchInputCallback.bind(this));
+
   const MAX_ITEM_PER_PAGE = 5;
 
   const getPlayers = function (data) {
     if (!data.success) console.error('error retrieving players');
-    const allPlayers = data.allPlayers;
-    this.allPlayersPerPage = [];
-    const totalPages = Math.ceil(allPlayers.length / MAX_ITEM_PER_PAGE);
-    for (let currentPage = 0; currentPage < totalPages; currentPage++) {
-      this.allPlayersPerPage.push([]);
-      for (let j = 0; j < MAX_ITEM_PER_PAGE; j++) {
-        if (currentPage * MAX_ITEM_PER_PAGE + j >= allPlayers.length) break;
-        this.allPlayersPerPage[currentPage].push(
-          allPlayers[currentPage * MAX_ITEM_PER_PAGE + j]
-        );
-      }
-    }
-    this.currentPage = 0;
-    this._listSendChallengePlayers(this.currentPage);
+    this.allPlayers = data.allPlayers;
+    this.__processPlayersToList(this.allPlayers);
   };
   getUsers(getPlayers.bind(this));
 };
@@ -139,6 +182,7 @@ Menu.prototype._removeSendChallengePage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.prevButton);
   this.removeChild(this.nextButton);
+  this.removeChild(this.searchInput);
 
   // remove existing children;
   if (this.allPlayersPerPageChildren) {
