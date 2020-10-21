@@ -1,11 +1,10 @@
 //========================= play game page =========================//
 Menu.prototype._createPlayPage = function () {
+  // single player
   const singleCallback = function () {
     this._removePlayPage();
     this._createSinglePage();
   };
-
-  // single player
   this.singlePlayerText = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.4,
@@ -16,11 +15,16 @@ Menu.prototype._createPlayPage = function () {
   this.addChild(this.singlePlayerText);
 
   // challenge player
+  const challengeCallback = function () {
+    this._removePlayPage();
+    this._createChallengePage();
+  };
   this.challengeText = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.5,
     'Challenge Player',
-    { fill: '#fff', fontSize: 30 }
+    { fill: '#fff', fontSize: 30 },
+    challengeCallback.bind(this)
   );
   this.addChild(this.challengeText);
 

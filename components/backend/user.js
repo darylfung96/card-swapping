@@ -19,3 +19,10 @@ function getUser(id, callback) {
     if (callback) callback(json_data);
   });
 }
+
+function getUsers(callback) {
+  $.get('server/user/getUsers.php', (data) => {
+    const json_data = JSON.parse(data);
+    if (callback) callback(json_data);
+  });
+}
