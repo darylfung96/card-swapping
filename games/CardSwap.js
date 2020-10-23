@@ -7,6 +7,8 @@
  * @param {string} seed - the seed provided to randomize the card swapping
  * @param {string} npc - if there is an npc that player is playing against (hard, medium, easy)
  * @param {object} userInfo - the information of the current user
+ * @param {boolean} isChallenge - is this game a challenge?
+ * @param {string} challengedPlayerId - The name of the player that is challenged
  * @param {function} startGameCallback - the function callback to restart the game
  * @param {function} returnMenuCallback - the function callback to quit the game and return to menu
  */
@@ -17,6 +19,8 @@ function CardSwap(
   seed,
   npc,
   userInfo,
+  isChallenge,
+  challengedPlayerId,
   startGameCallback,
   returnMenuCallback
 ) {
@@ -26,6 +30,8 @@ function CardSwap(
   this.userInfo = userInfo;
   this.startGameCallback = startGameCallback;
   this.returnMenuCallback = returnMenuCallback;
+  this.isChallenge = isChallenge;
+  this.challengedPlayerId = challengedPlayerId;
 
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
@@ -574,6 +580,143 @@ CardSwap.prototype._removeModalConfident = function () {
   this.modalVisible = false;
 };
 
+// increase the score text to around the center of the screen
+CardSwap.prototype._increaseScoreText = function (
+  mostRecentScores,
+  avgRecentScores,
+  scoreThreshold
+) {
+  this.scoreText.anchor.set(0.5);
+  const scoreTextTargetX = this.screenWidth * 0.4;
+  const scoreTextTargetY = this.screenHeight * 0.3;
+  const scoreTextTargetSize = 55;
+  const deltaX = (scoreTextTargetX - this.scoreText.x) / 200;
+  const deltaY = (scoreTextTargetY - this.scoreText.y) / 200;
+  const deltaSize = (scoreTextTargetSize - 20) / 200;
+  const increaseScoreTextInterval = setInterval(() => {
+    this.scoreText.x += deltaX;
+    this.scoreText.y += deltaY;
+    this.scoreText.style.fontSize += deltaSize;
+    this.scoreText.style.fontSize += deltaSize;
+    if (
+      scoreTextTargetX - this.scoreText.x < 3 &&
+      scoreTextTargetY - this.scoreText.y < 3
+    ) {
+      // after finish increasing the score size
+      clearInterval(increaseScoreTextInterval);
+      for (const swapCard of this.allSwapCards) {
+        this.removeChild(swapCard.guessingSprite);
+        this.removeChild(swapCard);
+      }
+      for (const targetCard of this.allTargetCards) {
+        this.removeChild(targetCard.scoreSprite);
+        this.removeChild(targetCard);
+      }
+
+      if (this.userInfo.level <= this.difficulty + 1) {
+        // congratulate and unlock level if user leveled up
+        if (mostRecentScores.length > 4 && avgRecentScores >= scoreThreshold) {
+          const unlockLevelText = new PIXI.Text(
+            `You unlock level ${this.difficulty + 1}!`,
+            { fill: '#fff', fontSize: 35 }
+          );
+          unlockLevelText.x = this.screenWidth * 0.4;
+          unlockLevelText.y = this.screenHeight * 0.2;
+          unlockLevelText.anchor.set(0.5);
+          this.addChild(unlockLevelText);
+        }
+      } else {
+        // add the next level button since user level is higher already
+
+        // create next level button
+        const goNextLevelText = ButtonFactoryText(
+          this.screenWidth * 0.4,
+          this.screenHeight * 0.5,
+          `Go to level ${this.difficulty + 1}`,
+          { fill: '#fff', fontSize: 35 },
+          () => {
+            this.startGameCallback(this.difficulty + 1, this.userInfo);
+          }
+        );
+        this.addChild(goNextLevelText);
+      }
+
+      // create NPC Score Text if exist
+      if (this.NPCScore !== null) {
+        const NPCScoreText = new PIXI.Text(`NPC Score: ${this.NPCScore}`, {
+          fontSize: 55,
+          fill: '#fff',
+        });
+        NPCScoreText.x = this.screenWidth * 0.4;
+        NPCScoreText.y = this.screenHeight * 0.4;
+        NPCScoreText.anchor.set(0.5);
+        this.addChild(NPCScoreText);
+
+        let resultText = '';
+        if (this.score > this.NPCScore) resultText = 'You win!';
+        else if (this.score < this.NPCScore) resultText = 'You lose!';
+        else resultText = "It's a tie!";
+        const winLoseText = new PIXI.Text(resultText, {
+          fontSize: 55,
+          fill: '#fff',
+        });
+        winLoseText.x = this.screenWidth * 0.4;
+        winLoseText.y = this.screenHeight * 0.5;
+        winLoseText.anchor.set(0.5);
+        this.addChild(winLoseText);
+      }
+
+      if (!this.isChallenge) {
+        this.playAgainText = ButtonFactoryText(
+          this.screenWidth * 0.4,
+          this.screenHeight * 0.6,
+          'Play Again',
+          { fill: '#fff', fontSize: 35 },
+          () => {
+            this.startGameCallback(this.difficulty, this.userInfo);
+          }
+        );
+        this.addChild(this.playAgainText);
+      } else {
+        const createChallengeSentTextCallback = function (data) {
+          if (!data.success) {
+            console.error(
+              'Something went wrong trying to send a challenge to the player'
+            );
+            return;
+          }
+          // if it is a challenge then we write challenge sent
+          this.challengeSentText = ButtonFactoryText(
+            this.screenWidth * 0.4,
+            this.screenHeight * 0.6,
+            `Challenge Sent to player ${this.challengedPlayerId}`,
+            { fill: '#fff', fontSize: 35 }
+          );
+          this.addChild(this.challengeSentText);
+        };
+        // each target card is max 3 score. Since, there is negative we times 2
+        const totalScore = this.allTargetCards.length * 3 * 2;
+        const normalizedScore =
+          (this.score + this.allTargetCards.length * 3) / totalScore;
+        sendChallenge(
+          this.userInfo.id,
+          this.challengedPlayerId,
+          normalizedScore,
+          createChallengeSentTextCallback.bind(this)
+        );
+      }
+      this.exitText = ButtonFactoryText(
+        this.screenWidth * 0.4,
+        this.screenHeight * 0.7,
+        'Exit Game',
+        { fill: '#fff', fontSize: 35 },
+        this.returnMenuCallback
+      );
+      this.addChild(this.exitText);
+    }
+  }, 10);
+};
+
 /**
  * _calculateScore calculates the score user obtain once the guessing time has ended
  *
@@ -685,117 +828,14 @@ CardSwap.prototype._calculateScore = function () {
   }
   this._createScoreText();
 
-  // increase the score text to around the center of the screen
-  const increaseScoreText = function (self) {
-    self.scoreText.anchor.set(0.5);
-    const scoreTextTargetX = self.screenWidth * 0.4;
-    const scoreTextTargetY = self.screenHeight * 0.3;
-    const scoreTextTargetSize = 55;
-    const deltaX = (scoreTextTargetX - self.scoreText.x) / 200;
-    const deltaY = (scoreTextTargetY - self.scoreText.y) / 200;
-    const deltaSize = (scoreTextTargetSize - 20) / 200;
-    const increaseScoreTextInterval = setInterval(() => {
-      self.scoreText.x += deltaX;
-      self.scoreText.y += deltaY;
-      self.scoreText.style.fontSize += deltaSize;
-      self.scoreText.style.fontSize += deltaSize;
-      if (
-        scoreTextTargetX - self.scoreText.x < 3 &&
-        scoreTextTargetY - self.scoreText.y < 3
-      ) {
-        // after finish increasing the score size
-        clearInterval(increaseScoreTextInterval);
-        for (const swapCard of self.allSwapCards) {
-          self.removeChild(swapCard.guessingSprite);
-          self.removeChild(swapCard);
-        }
-        for (const targetCard of self.allTargetCards) {
-          self.removeChild(targetCard.scoreSprite);
-          self.removeChild(targetCard);
-        }
-
-        if (self.userInfo.level <= self.difficulty + 1) {
-          // congratulate and unlock level if user leveled up
-          if (
-            mostRecentScores.length > 4 &&
-            avgRecentScores >= scoreThreshold
-          ) {
-            const unlockLevelText = new PIXI.Text(
-              `You unlock level ${self.difficulty + 1}!`,
-              { fill: '#fff', fontSize: 35 }
-            );
-            unlockLevelText.x = self.screenWidth * 0.4;
-            unlockLevelText.y = self.screenHeight * 0.2;
-            unlockLevelText.anchor.set(0.5);
-            self.addChild(unlockLevelText);
-          }
-        } else {
-          // add the next level button since user level is higher already
-
-          // create next level button
-          const goNextLevelText = ButtonFactoryText(
-            self.screenWidth * 0.4,
-            self.screenHeight * 0.5,
-            `Go to level ${self.difficulty + 1}`,
-            { fill: '#fff', fontSize: 35 },
-            () => {
-              self.startGameCallback(self.difficulty + 1, self.userInfo);
-            }
-          );
-          self.addChild(goNextLevelText);
-        }
-
-        // create NPC Score Text if exist
-        if (self.NPCScore !== null) {
-          const NPCScoreText = new PIXI.Text(`NPC Score: ${self.NPCScore}`, {
-            fontSize: 55,
-            fill: '#fff',
-          });
-          NPCScoreText.x = self.screenWidth * 0.4;
-          NPCScoreText.y = self.screenHeight * 0.4;
-          NPCScoreText.anchor.set(0.5);
-          self.addChild(NPCScoreText);
-
-          let resultText = '';
-          if (self.score > self.NPCScore) resultText = 'You win!';
-          else if (self.score < self.NPCScore) resultText = 'You lose!';
-          else resultText = "It's a tie!";
-          const winLoseText = new PIXI.Text(resultText, {
-            fontSize: 55,
-            fill: '#fff',
-          });
-          winLoseText.x = self.screenWidth * 0.4;
-          winLoseText.y = self.screenHeight * 0.5;
-          winLoseText.anchor.set(0.5);
-          self.addChild(winLoseText);
-        }
-
-        self.playAgainText = ButtonFactoryText(
-          self.screenWidth * 0.4,
-          self.screenHeight * 0.6,
-          'Play Again',
-          { fill: '#fff', fontSize: 35 },
-          () => {
-            self.startGameCallback(self.difficulty, self.userInfo);
-          }
-        );
-        self.addChild(self.playAgainText);
-        self.exitText = ButtonFactoryText(
-          self.screenWidth * 0.4,
-          self.screenHeight * 0.7,
-          'Exit Game',
-          { fill: '#fff', fontSize: 35 },
-          self.returnMenuCallback
-        );
-        self.addChild(self.exitText);
-      }
-    }, 10);
-  };
-  const self = this;
-  const increaseScoreTextInterval = setInterval(() => {
-    increaseScoreText(self);
+  const fnIncreaseScoreTextInterval = (mostRecentScores, avgRecentScores) => {
+    this._increaseScoreText(mostRecentScores, avgRecentScores, scoreThreshold);
     clearInterval(increaseScoreTextInterval);
-  }, 3000);
+  };
+  const increaseScoreTextInterval = setInterval(
+    fnIncreaseScoreTextInterval.bind(this, mostRecentScores, avgRecentScores),
+    3000
+  );
 };
 
 /********************** Initialization ***********************/
@@ -1018,6 +1058,18 @@ GameContainer.prototype._createLevelText = function () {
   this.addChild(this.levelText);
 };
 
+GameContainer.prototype._createChallengedPlayerText = function () {
+  if (this.isChallenge) {
+    this.challengePlayerText = ButtonFactoryText(
+      this.screenWidth * 0.4,
+      this.screenHeight * 0.95,
+      `challenging player: ${this.challengedPlayerId}`,
+      { fill: '#fff', fontSize: 20 }
+    );
+    this.addChild(this.challengePlayerText);
+  }
+};
+
 /**
  * _initialize initialize the game
  *
@@ -1027,5 +1079,6 @@ CardSwap.prototype._initialize = function () {
   this._createScoreText();
   this._createLevelText();
   this._initializeCards();
+  this._createChallengedPlayerText();
   this._createCountdown(1, this._flipSwapCards.bind(this));
 };

@@ -70,8 +70,17 @@ Main.prototype.returnMenuCallback = function () {
 
 /**
  * startGameCallback is a function that starts the CardSwap game by changing the renderingContainer inside Main class
+ * @param {int} difficulty - The level of the cardswap game
+ * @param {object} userInfo - the information of the current  player
+ * @param {boolean} isChallenge - Is it a challenge?
+ * @param {string} challegedPlayerName - The player to challenge against
  */
-Main.prototype.startGameCallback = function (difficulty, userInfo) {
+Main.prototype.startGameCallback = function (
+  difficulty,
+  userInfo,
+  isChallenge,
+  challegedPlayerName
+) {
   let seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
   let numPlayers = getUrlParameter('numPlayers') || null;
@@ -100,6 +109,8 @@ Main.prototype.startGameCallback = function (difficulty, userInfo) {
       seed,
       npc,
       userInfo,
+      isChallenge || false,
+      challegedPlayerName || null,
       this.startGameCallback.bind(this),
       this.returnMenuCallback.bind(this)
     );

@@ -83,12 +83,17 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
         fontSize: 25,
       }
     );
+    const challengeCallback = function () {
+      const difficulty = this.userInfo.level;
+      this.startGameCallback(difficulty, this.userInfo, true, currentPlayer);
+    };
     const challengeButton = ButtonFactory(
       rightX,
       startingY + spacingY * i,
       this.screenWidth * 0.21,
       this.screenHeight * 0.07,
-      'resources/buttons/button_challenge.png'
+      'resources/buttons/button_challenge.png',
+      challengeCallback.bind(this)
     );
     this.allPlayersPerPageChildren.push(currentPlayerText);
     this.addChild(currentPlayerText);
@@ -172,7 +177,9 @@ Menu.prototype._createSendChallengePage = function () {
 
   const getPlayers = function (data) {
     if (!data.success) console.error('error retrieving players');
-    this.allPlayers = data.allPlayers;
+    this.allPlayers = data.allPlayers.filter(
+      (player) => Object.keys(player)[0] !== this.userInfo.id
+    );
     this.__processPlayersToList(this.allPlayers);
   };
   getUsers(getPlayers.bind(this));
