@@ -1,21 +1,192 @@
 //========================= challenge player page =========================//
 
-Menu.prototype._createReceiveChallengePage = function () {};
+Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
+  // remove existing children;
+  if (this.receivedChallengePerPageChildren) {
+    for (const child of this.receivedChallengePerPageChildren) {
+      this.removeChild(child);
+    }
+    this.removeChild(this.prevButton);
+    this.removeChild(this.nextButton);
+  }
+  // don't list any players if no players are found
+  if (this.receivedChallengePerPage.length === 0) return;
+  console.log(this.receivedChallengePerPage);
+  this.receivedChallengePerPageChildren = [];
+  const leftX = this.screenWidth * 0.2;
+  const middleX = this.screenWidth * 0.5;
+  const rightX = this.screenWidth * 0.8;
+  const startingY = this.screenHeight * 0.4;
+  const spacingY = this.screenHeight * 0.1;
+
+  this.playerNameTitle = ButtonFactoryText(
+    leftX,
+    startingY + spacingY * -1,
+    'Player ID',
+    {
+      fill: '#fff',
+      fontSize: 25,
+    }
+  );
+  this.scoreBeatTitle = ButtonFactoryText(
+    middleX,
+    startingY + spacingY * -1,
+    'Score To Beat',
+    {
+      fill: '#fff',
+      fontSize: 25,
+    }
+  );
+  this.addChild(this.playerNameTitle);
+  this.addChild(this.scoreBeatTitle);
+  this.receivedChallengePerPageChildren.push(this.playerNameTitle);
+  this.receivedChallengePerPageChildren.push(this.scoreBeatTitle);
+  const levelToTargetCardsNumber = {
+    1: 2,
+    2: 2,
+    3: 2,
+    4: 3,
+    5: 3,
+    6: 4,
+    7: 4,
+    8: 6,
+    9: 6,
+    10: 7,
+  };
+  for (let i = 0; i < this.receivedChallengePerPage[pageIndex].length; i++) {
+    const currentPlayer = this.receivedChallengePerPage[pageIndex][i].id;
+    const normalizedScoreToBeat = this.receivedChallengePerPage[pageIndex][i]
+      .score;
+    const totalScore = 3 * levelToTargetCardsNumber[this.userInfo.level] * 2;
+    const scoreToBeat =
+      normalizedScoreToBeat * totalScore -
+      levelToTargetCardsNumber[this.userInfo.level] * 3;
+
+    const currentPlayerText = ButtonFactoryText(
+      leftX,
+      startingY + spacingY * i,
+      currentPlayer,
+      {
+        fill: '#fff',
+        fontSize: 25,
+      }
+    );
+    const scoreToBeatText = ButtonFactoryText(
+      middleX,
+      startingY + spacingY * i,
+      scoreToBeat,
+      {
+        fill: '#fff',
+        fontSize: 25,
+      }
+    );
+    // if it is a receiving challenge
+    if (this.receivedChallengePerPage[pageIndex][i].type === 'receive') {
+      const challengeCallback = function () {
+        const difficulty = this.userInfo.level;
+        this.startGameCallback(difficulty, this.userInfo, true, currentPlayer);
+      };
+      const acceptButton = ButtonFactory(
+        rightX,
+        startingY + spacingY * i,
+        this.screenWidth * 0.21,
+        this.screenHeight * 0.07,
+        'resources/buttons/button_accept.png',
+        challengeCallback.bind(this)
+      );
+      this.receivedChallengePerPageChildren.push(acceptButton);
+      this.addChild(acceptButton);
+    } else {
+      // if it is a sent challenge
+      if (!this.receivedChallengePerPage[pageIndex][i].result) {
+        const resultText = ButtonFactoryText(
+          rightX,
+          startingY + spacingY * i,
+          'Pending',
+          { fill: '#fff', fontSize: 25 }
+        );
+        this.receivedChallengePerPageChildren.push(resultText);
+        this.addChild(resultText);
+      }
+    }
+    this.receivedChallengePerPageChildren.push(currentPlayerText);
+    this.addChild(currentPlayerText);
+    this.receivedChallengePerPageChildren.push(scoreToBeatText);
+    this.addChild(scoreToBeatText);
+  }
+
+  // add prev / next button
+  if (pageIndex > 0) {
+    this.prevButton = ButtonFactoryText(
+      this.screenWidth * 0.2,
+      this.screenHeight * 0.9,
+      'Previous',
+      { fill: '#fff', fontSize: 25 },
+      () => {
+        this._listReceivedChallengePlayers(pageIndex - 1);
+      }
+    );
+    this.addChild(this.prevButton);
+  }
+  if (pageIndex < this.receivedChallengePerPage.length - 1) {
+    this.nextButton = ButtonFactoryText(
+      this.screenWidth * 0.8,
+      this.screenHeight * 0.9,
+      'Next',
+      { fill: '#fff', fontSize: 25 },
+      () => {
+        this._listReceivedChallengePlayers(pageIndex + 1);
+      }
+    );
+  }
+};
+
+Menu.prototype._createReceiveChallengePage = function () {
+  const backCallback = function () {
+    this._removeReceiveChallengePage();
+    this._createChallengePage();
+  };
+  this.backButton = this.__createBackButton(backCallback.bind(this));
+  this.addChild(this.backButton);
+
+  const receivedChallengeCallback = function (data) {
+    const receivedChallenges = data.challenges;
+    this.receivedChallengePerPage = this.__processPlayersToList(
+      receivedChallenges
+    );
+    this._listReceivedChallengePlayers(0);
+  };
+
+  getChallenge(this.userInfo.id, receivedChallengeCallback.bind(this));
+};
+Menu.prototype._removeReceiveChallengePage = function () {
+  this.removeChild(this.backButton);
+  this.removeChild(this.prevButton);
+  this.removeChild(this.nextButton);
+
+  // remove existing children;
+  if (this.receivedChallengePerPageChildren) {
+    for (const child of this.receivedChallengePerPageChildren) {
+      this.removeChild(child);
+    }
+  }
+
+  this.receivedChallengePerPageChildren = null;
+};
 
 Menu.prototype.__processPlayersToList = function (filteredPlayers) {
-  this.allPlayersPerPage = [];
+  let allPlayersPerPage = [];
   const totalPages = Math.ceil(filteredPlayers.length / MAX_ITEM_PER_PAGE);
   for (let currentPage = 0; currentPage < totalPages; currentPage++) {
-    this.allPlayersPerPage.push([]);
+    allPlayersPerPage.push([]);
     for (let j = 0; j < MAX_ITEM_PER_PAGE; j++) {
       if (currentPage * MAX_ITEM_PER_PAGE + j >= filteredPlayers.length) break;
-      this.allPlayersPerPage[currentPage].push(
+      allPlayersPerPage[currentPage].push(
         filteredPlayers[currentPage * MAX_ITEM_PER_PAGE + j]
       );
     }
   }
-  this.currentPage = 0;
-  this._listSendChallengePlayers(this.currentPage);
+  return allPlayersPerPage;
 };
 
 Menu.prototype._listSendChallengePlayers = function (pageIndex) {
@@ -141,7 +312,8 @@ Menu.prototype._createSendChallengePage = function () {
     const filteredPlayers = this.allPlayers.filter((player) => {
       return Object.keys(player)[0].indexOf(text) !== -1;
     });
-    this.__processPlayersToList(filteredPlayers);
+    this.allPlayersPerPage = this.__processPlayersToList(filteredPlayers);
+    this._listSendChallengePlayers(0);
   };
   this.searchInput = new PIXI.TextInput({
     input: {
@@ -180,7 +352,8 @@ Menu.prototype._createSendChallengePage = function () {
     this.allPlayers = data.allPlayers.filter(
       (player) => Object.keys(player)[0] !== this.userInfo.id
     );
-    this.__processPlayersToList(this.allPlayers);
+    this.allPlayersPerPage = this.__processPlayersToList(this.allPlayers);
+    this._listSendChallengePlayers(0);
   };
   getUsers(getPlayers.bind(this));
 };
@@ -197,6 +370,8 @@ Menu.prototype._removeSendChallengePage = function () {
       this.removeChild(child);
     }
   }
+
+  this.allPlayersPerPageChildren = null;
 };
 
 Menu.prototype._createChallengePage = function () {
@@ -208,7 +383,10 @@ Menu.prototype._createChallengePage = function () {
   this.addChild(this.backButton);
 
   // receive challenge
-  const receiveChallengeCallback = function () {};
+  const receiveChallengeCallback = function () {
+    this._removeChallengePage();
+    this._createReceiveChallengePage();
+  };
   this.receiveChallengeText = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.4,
