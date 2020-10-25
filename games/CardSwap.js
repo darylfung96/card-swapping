@@ -7,8 +7,7 @@
  * @param {string} seed - the seed provided to randomize the card swapping
  * @param {string} npc - if there is an npc that player is playing against (hard, medium, easy)
  * @param {object} userInfo - the information of the current user
- * @param {boolean} isChallenge - is this game a challenge?
- * @param {string} challengedPlayerId - The name of the player that is challenged
+ * @param {object} challengeInformation - The challenge information if applicable {type: 'send'or'receive', challengedPlayer: 'challengedPlayerId', 'normalizedScoreToBeat?': 1}
  * @param {function} startGameCallback - the function callback to restart the game
  * @param {function} returnMenuCallback - the function callback to quit the game and return to menu
  */
@@ -19,8 +18,7 @@ function CardSwap(
   seed,
   npc,
   userInfo,
-  isChallenge,
-  challengedPlayerId,
+  challengeInformation,
   startGameCallback,
   returnMenuCallback
 ) {
@@ -30,8 +28,7 @@ function CardSwap(
   this.userInfo = userInfo;
   this.startGameCallback = startGameCallback;
   this.returnMenuCallback = returnMenuCallback;
-  this.isChallenge = isChallenge;
-  this.challengedPlayerId = challengedPlayerId;
+  this.challengeInformation = challengeInformation;
 
   this.screenWidth = screenWidth;
   this.screenHeight = screenHeight;
@@ -666,7 +663,7 @@ CardSwap.prototype._increaseScoreText = function (
         this.addChild(winLoseText);
       }
 
-      if (!this.isChallenge) {
+      if (!this.challengeInformation) {
         this.playAgainText = ButtonFactoryText(
           this.screenWidth * 0.4,
           this.screenHeight * 0.6,
@@ -689,7 +686,7 @@ CardSwap.prototype._increaseScoreText = function (
           this.challengeSentText = ButtonFactoryText(
             this.screenWidth * 0.4,
             this.screenHeight * 0.6,
-            `Challenge Sent to player ${this.challengedPlayerId}`,
+            `Challenge Sent to player ${this.challengeInformation.challengedPlayer}`,
             { fill: '#fff', fontSize: 35 }
           );
           this.addChild(this.challengeSentText);
@@ -698,12 +695,49 @@ CardSwap.prototype._increaseScoreText = function (
         const totalScore = this.allTargetCards.length * 3 * 2;
         const normalizedScore =
           (this.score + this.allTargetCards.length * 3) / totalScore;
-        sendChallenge(
-          this.userInfo.id,
-          this.challengedPlayerId,
-          normalizedScore,
-          createChallengeSentTextCallback.bind(this)
-        );
+
+        if (this.challengeInformation.type === 'send') {
+          sendChallenge(
+            null,
+            this.userInfo.id,
+            this.challengeInformation.challengedPlayer,
+            normalizedScore,
+            'send',
+            null,
+            createChallengeSentTextCallback.bind(this)
+          );
+        } else {
+          const createChallengeReceiveTextCallback = function (data) {
+            if (!data.success) {
+              console.error(
+                'Something went wrong trying to update the challenge to the player'
+              );
+              return;
+            }
+            // if it is a challenge then we write challenge sent
+            this.challengeReceiveText = ButtonFactoryText(
+              this.screenWidth * 0.4,
+              this.screenHeight * 0.6,
+              `You ${
+                normalizedScore > this.challengeInformation.normalizedScore
+                  ? 'Win!'
+                  : 'Lost!'
+              }`,
+              { fill: '#fff', fontSize: 35 }
+            );
+            this.addChild(this.challengeReceiveText);
+          };
+          // if receiving
+          sendChallenge(
+            this.challengeInformation.challengePrimaryKey,
+            this.userInfo.id,
+            this.challengeInformation.challengedPlayer,
+            normalizedScore,
+            'receive',
+            normalizedScore > this.challengeInformation.normalizedScore,
+            createChallengeReceiveTextCallback.bind(this)
+          );
+        }
       }
       this.exitText = ButtonFactoryText(
         this.screenWidth * 0.4,
@@ -792,35 +826,38 @@ CardSwap.prototype._calculateScore = function () {
   const avgRecentScores =
     mostRecentScores.reduce((a, b) => a + b, 0) / mostRecentScores.length;
 
-  // update user level
   const scoreThreshold = Math.floor(this.allTargetCards.length * 3 * 0.7);
-  // if user exceed 70% of the max score
-  if (mostRecentScores.length > 4 && avgRecentScores >= scoreThreshold) {
-    if (this.userInfo.level < this.difficulty + 1)
-      this.userInfo.level = this.difficulty + 1;
+  // update user level
+  // only calculate to level up if this is not a challenge
+  if (!this.challengeInformation) {
+    // if user exceed 70% of the max score
+    if (mostRecentScores.length > 4 && avgRecentScores >= scoreThreshold) {
+      if (this.userInfo.level < this.difficulty + 1)
+        this.userInfo.level = this.difficulty + 1;
+    }
+    this.userInfo.timesPlayed += 1;
+    updateUser(this.userInfo, (data) => {
+      if (!data.success) console.log('error updating user information');
+    });
+    updateLeaderboard(
+      this.userInfo.id,
+      'timesPlayed',
+      null,
+      this.userInfo.timesPlayed,
+      (data) => {
+        if (!data.success) console.log('error updating leaderboard');
+      }
+    );
+    updateLeaderboard(
+      this.userInfo.id,
+      'highScore',
+      this.difficulty,
+      this.score,
+      (data) => {
+        if (!data.success) console.log('error updating leaderboard');
+      }
+    );
   }
-  this.userInfo.timesPlayed += 1;
-  updateUser(this.userInfo, (data) => {
-    if (!data.success) console.log('error updating user information');
-  });
-  updateLeaderboard(
-    this.userInfo.id,
-    'timesPlayed',
-    null,
-    this.userInfo.timesPlayed,
-    (data) => {
-      if (!data.success) console.log('error updating leaderboard');
-    }
-  );
-  updateLeaderboard(
-    this.userInfo.id,
-    'highScore',
-    this.difficulty,
-    this.score,
-    (data) => {
-      if (!data.success) console.log('error updating leaderboard');
-    }
-  );
 
   // show the actual score on the scoreText
   if (this.scoreText) {
@@ -1059,11 +1096,11 @@ GameContainer.prototype._createLevelText = function () {
 };
 
 GameContainer.prototype._createChallengedPlayerText = function () {
-  if (this.isChallenge) {
+  if (this.challengeInformation) {
     this.challengePlayerText = ButtonFactoryText(
       this.screenWidth * 0.4,
       this.screenHeight * 0.95,
-      `challenging player: ${this.challengedPlayerId}`,
+      `challenging player: ${this.challengeInformation.challengedPlayer}`,
       { fill: '#fff', fontSize: 20 }
     );
     this.addChild(this.challengePlayerText);

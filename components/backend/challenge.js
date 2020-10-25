@@ -1,7 +1,22 @@
-function sendChallenge(userId, challengedId, userNormalizedScore, callback) {
+function sendChallenge(
+  challengePrimaryKey,
+  userId,
+  challengedId,
+  userNormalizedScore,
+  type,
+  isWon,
+  callback
+) {
   $.post(
     'server/challenge/sendChallenge.php',
-    { userId, challengedId, userNormalizedScore },
+    {
+      challengePrimaryKey,
+      userId,
+      challengedId,
+      userNormalizedScore,
+      type,
+      isWon,
+    },
     (data) => {
       const json_data = JSON.parse(data);
       if (callback) callback(json_data);

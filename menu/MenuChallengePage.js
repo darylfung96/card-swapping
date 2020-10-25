@@ -54,6 +54,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     10: 7,
   };
   for (let i = 0; i < this.receivedChallengePerPage[pageIndex].length; i++) {
+    console.log(this.receivedChallengePerPage[pageIndex][i]);
     const currentPlayer = this.receivedChallengePerPage[pageIndex][i].id;
     const normalizedScoreToBeat = this.receivedChallengePerPage[pageIndex][i]
       .score;
@@ -82,9 +83,14 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     );
     // if it is a receiving challenge
     if (this.receivedChallengePerPage[pageIndex][i].type === 'receive') {
+      const challengeInformation = {
+        type: 'receive',
+        challengedPlayer: currentPlayer,
+        normalizedScoreToBeat: normalizedScoreToBeat,
+      };
       const challengeCallback = function () {
         const difficulty = this.userInfo.level;
-        this.startGameCallback(difficulty, this.userInfo, true, currentPlayer);
+        this.startGameCallback(difficulty, this.userInfo, challengeInformation);
       };
       const acceptButton = ButtonFactory(
         rightX,
@@ -98,16 +104,22 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
       this.addChild(acceptButton);
     } else {
       // if it is a sent challenge
-      if (!this.receivedChallengePerPage[pageIndex][i].result) {
-        const resultText = ButtonFactoryText(
-          rightX,
-          startingY + spacingY * i,
-          'Pending',
-          { fill: '#fff', fontSize: 25 }
-        );
-        this.receivedChallengePerPageChildren.push(resultText);
-        this.addChild(resultText);
+      let textResult = '';
+      if (this.receivedChallengePerPage[pageIndex][i].isWon === undefined) {
+        textResult = 'pending';
+      } else {
+        textResult = this.receivedChallengePerPage[pageIndex][i].isWon
+          ? 'You Won!'
+          : 'You Lost';
       }
+      const resultText = ButtonFactoryText(
+        rightX,
+        startingY + spacingY * i,
+        textResult,
+        { fill: '#fff', fontSize: 25 }
+      );
+      this.receivedChallengePerPageChildren.push(resultText);
+      this.addChild(resultText);
     }
     this.receivedChallengePerPageChildren.push(currentPlayerText);
     this.addChild(currentPlayerText);
@@ -255,8 +267,12 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
       }
     );
     const challengeCallback = function () {
+      const challengeInformation = {
+        type: 'send',
+        challengedPlayer: currentPlayer,
+      };
       const difficulty = this.userInfo.level;
-      this.startGameCallback(difficulty, this.userInfo, true, currentPlayer);
+      this.startGameCallback(difficulty, this.userInfo, challengeInformation);
     };
     const challengeButton = ButtonFactory(
       rightX,
