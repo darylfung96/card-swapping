@@ -54,7 +54,6 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     10: 7,
   };
   for (let i = 0; i < this.receivedChallengePerPage[pageIndex].length; i++) {
-    console.log(this.receivedChallengePerPage[pageIndex][i]);
     const currentPlayer = this.receivedChallengePerPage[pageIndex][i].id;
     const normalizedScoreToBeat = this.receivedChallengePerPage[pageIndex][i]
       .score;
@@ -87,6 +86,8 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
         type: 'receive',
         challengedPlayer: currentPlayer,
         normalizedScoreToBeat: normalizedScoreToBeat,
+        challengePrimaryKey: this.receivedChallengePerPage[pageIndex][i]
+          .challengePrimaryKey,
       };
       const challengeCallback = function () {
         const difficulty = this.userInfo.level;

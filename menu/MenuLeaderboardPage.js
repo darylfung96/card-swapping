@@ -73,6 +73,12 @@ Menu.prototype._listMostPlayed = function (pageIndex) {
   this.mostPlayedChildren.push(this.rankText);
   this.mostPlayedChildren.push(this.playerIdText);
   this.mostPlayedChildren.push(this.mostPlayedTitleText);
+
+  // don't list anything if empty
+  if (this.processedMostPlayedLeaderboard.length === 0) {
+    return;
+  }
+
   for (
     let i = 0;
     i < this.processedMostPlayedLeaderboard[pageIndex].length;

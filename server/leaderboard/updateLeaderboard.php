@@ -1,7 +1,7 @@
 <?php
 include '../returnResponse.php';
 include './_timesPlayedLeaderboard.php';
-include './_highScoreLeaderboard.php';
+include './_highestLevelLeaderboard.php';
 include '../common.php';
 
 header('Access-Control-Allow-Origin: *');
@@ -14,7 +14,6 @@ header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 $id = $_POST['id'];
 $type = $_POST['type'];
 $value = $_POST['value'];
-$level = $_POST['level'];
 
 // check if user exist
 $userFileDir = "${FILE_STORAGE_DIR}/{$id}/";
@@ -29,10 +28,11 @@ if (!file_exists($userFilename)) {
 if (strcmp($type, 'timesPlayed') === 0) {
   echo updateTimesPlayedLeaderboard($LEADERBOARD_FILENAME, $id, $value);
   return;
-} else if (strcmp($type, 'highScore' === 0)) {
-  echo updateHighScoreLeaderboard($LEADERBOARD_FILENAME, $level, $id, $value); 
+} else if (strcmp($type, 'highestLevel' === 0)) {
+  echo updateHighestlevelLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
   return;
+} else if (strcmp($type, 'winningRate' === 0)) {
+  echo updateWinningRateLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
 }
-
 
 ?>

@@ -17,7 +17,9 @@ function sendChallenge(
       type,
       isWon,
     },
+
     (data) => {
+      console.log(data);
       const json_data = JSON.parse(data);
       if (callback) callback(json_data);
     }

@@ -719,7 +719,8 @@ CardSwap.prototype._increaseScoreText = function (
               this.screenWidth * 0.4,
               this.screenHeight * 0.6,
               `You ${
-                normalizedScore > this.challengeInformation.normalizedScore
+                normalizedScore >
+                this.challengeInformation.normalizedScoreToBeat
                   ? 'Win!'
                   : 'Lost!'
               }`,
@@ -734,7 +735,7 @@ CardSwap.prototype._increaseScoreText = function (
             this.challengeInformation.challengedPlayer,
             normalizedScore,
             'receive',
-            normalizedScore > this.challengeInformation.normalizedScore,
+            normalizedScore > this.challengeInformation.normalizedScoreToBeat,
             createChallengeReceiveTextCallback.bind(this)
           );
         }
@@ -825,6 +826,9 @@ CardSwap.prototype._calculateScore = function () {
   const mostRecentScores = getUserMostRecentScores.bind(this)();
   const avgRecentScores =
     mostRecentScores.reduce((a, b) => a + b, 0) / mostRecentScores.length;
+  // each target card is max 3 score. Since, there is negative we times 2
+  const normalizedScore =
+    (this.score + this.allTargetCards.length * 3) / totalScore;
 
   const scoreThreshold = Math.floor(this.allTargetCards.length * 3 * 0.7);
   // update user level
@@ -845,16 +849,40 @@ CardSwap.prototype._calculateScore = function () {
       null,
       this.userInfo.timesPlayed,
       (data) => {
-        if (!data.success) console.log('error updating leaderboard');
+        if (!data.success) console.error('error updating leaderboard');
       }
     );
     updateLeaderboard(
       this.userInfo.id,
-      'highScore',
+      'highestlevel',
+      null,
       this.difficulty,
-      this.score,
       (data) => {
-        if (!data.success) console.log('error updating leaderboard');
+        if (!data.success) console.error('error updating leaderboard');
+      }
+    );
+  } else {
+    if (!this.userInfo.wins) this.userInfo.wins = 0;
+    if (!this.userInfo.loses) this.userInfo.loses = 0;
+
+    if (normalizedScore > this.challengeInformation.normalizedScoreToBeat) {
+      this.userInfo.wins++;
+    } else {
+      this.userInfo.loses++;
+    }
+    // if it is a challenge
+    updateUser(this.userInfo, (data) => {
+      if (!data.success) console.error('error updating user information');
+    });
+    const winningRate =
+      this.userInfo.wins / (this.userInfo.wins + this.userInfo.loses);
+    updateLeaderboard(
+      this.userInfo.id,
+      'winningRate',
+      null,
+      winningRate,
+      (data) => {
+        if (!data.success) console.error('error updating leaderboard');
       }
     );
   }

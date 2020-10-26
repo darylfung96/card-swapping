@@ -71,12 +71,13 @@ function updateChallenge($challengePrimaryKey, $filename, $isWon) {
 
   $challengeObject = json_decode(file_get_contents($filename));
   $challengeObject->{$challengePrimaryKey}->isWon = $isWon;
-  print_r($challengeObject);
   file_put_contents($filename, json_encode($challengeObject));
 
   $returnValue = generateResponse($returnValue, 'Successfully added challenge', true);
   return $returnValue;
 }
+
+$returnValue = new stdClass();
 
 if ($type === "send") {
   $challengePrimaryKey = getNextChallengeId($globalChallengeIdFilename);
@@ -90,7 +91,7 @@ if ($type === "send") {
     if (!$returnValue->success) {
       $challengeArray = json_decode(file_get_contents($userFilename));
       array_shift($challengeArray);
-      file_put_contents($filename, json_encode($challengeArray));
+      file_put_contents($userFilename, json_encode($challengeArray));
     }
   }
 
@@ -98,6 +99,12 @@ if ($type === "send") {
     $returnValue = updateChallenge($challengePrimaryKey, $userFilename, $isWon === 'true');
     if ($returnValue->success) {
       $returnValue = updateChallenge($challengePrimaryKey, $challengedUserFilename, $isWon !== 'true');
+
+      if (!$returnValue->success) {
+        $challengeArray = json_decode(file_get_contents($userFilename));
+        array_shift($challengeArray);
+        file_put_contents($userFilename, json_encode($challengeArray));
+      }
     }
 } 
 echo json_encode($returnValue);
