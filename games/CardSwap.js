@@ -610,32 +610,38 @@ CardSwap.prototype._increaseScoreText = function (
         this.removeChild(targetCard);
       }
 
-      if (this.userInfo.level <= this.difficulty + 1) {
-        // congratulate and unlock level if user leveled up
-        if (mostRecentScores.length > 4 && avgRecentScores >= scoreThreshold) {
-          const unlockLevelText = new PIXI.Text(
-            `You unlock level ${this.difficulty + 1}!`,
-            { fill: '#fff', fontSize: 35 }
-          );
-          unlockLevelText.x = this.screenWidth * 0.4;
-          unlockLevelText.y = this.screenHeight * 0.2;
-          unlockLevelText.anchor.set(0.5);
-          this.addChild(unlockLevelText);
-        }
-      } else {
-        // add the next level button since user level is higher already
-
-        // create next level button
-        const goNextLevelText = ButtonFactoryText(
-          this.screenWidth * 0.4,
-          this.screenHeight * 0.5,
-          `Go to level ${this.difficulty + 1}`,
-          { fill: '#fff', fontSize: 35 },
-          () => {
-            this.startGameCallback(this.difficulty + 1, this.userInfo);
+      // if this is not challenge, then we show unlock levels
+      if (!this.challengeInformation) {
+        if (this.userInfo.level <= this.difficulty + 1) {
+          // congratulate and unlock level if user leveled up
+          if (
+            mostRecentScores.length > 4 &&
+            avgRecentScores >= scoreThreshold
+          ) {
+            const unlockLevelText = new PIXI.Text(
+              `You unlock level ${this.difficulty + 1}!`,
+              { fill: '#fff', fontSize: 35 }
+            );
+            unlockLevelText.x = this.screenWidth * 0.4;
+            unlockLevelText.y = this.screenHeight * 0.2;
+            unlockLevelText.anchor.set(0.5);
+            this.addChild(unlockLevelText);
           }
-        );
-        this.addChild(goNextLevelText);
+        } else {
+          // add the next level button since user level is higher already
+
+          // create next level button
+          const goNextLevelText = ButtonFactoryText(
+            this.screenWidth * 0.4,
+            this.screenHeight * 0.5,
+            `Go to level ${this.difficulty + 1}`,
+            { fill: '#fff', fontSize: 35 },
+            () => {
+              this.startGameCallback(this.difficulty + 1, this.userInfo);
+            }
+          );
+          this.addChild(goNextLevelText);
+        }
       }
 
       // create NPC Score Text if exist
@@ -650,9 +656,13 @@ CardSwap.prototype._increaseScoreText = function (
         this.addChild(NPCScoreText);
 
         let resultText = '';
-        if (this.score > this.NPCScore) resultText = 'You win!';
-        else if (this.score < this.NPCScore) resultText = 'You lose!';
-        else resultText = "It's a tie!";
+        if (this.score > this.NPCScore) {
+          resultText = 'You win!';
+        } else if (this.score < this.NPCScore) {
+          resultText = 'You lose!';
+        } else {
+          resultText = "It's a tie!";
+        }
         const winLoseText = new PIXI.Text(resultText, {
           fontSize: 55,
           fill: '#fff',
@@ -663,6 +673,7 @@ CardSwap.prototype._increaseScoreText = function (
         this.addChild(winLoseText);
       }
 
+      // create play again text if not a challenge otherwise write challenge sent
       if (!this.challengeInformation) {
         this.playAgainText = ButtonFactoryText(
           this.screenWidth * 0.4,
@@ -692,9 +703,9 @@ CardSwap.prototype._increaseScoreText = function (
           this.addChild(this.challengeSentText);
         };
         // each target card is max 3 score. Since, there is negative we times 2
-        const totalScore = this.allTargetCards.length * 3 * 2;
         const normalizedScore =
-          (this.score + this.allTargetCards.length * 3) / totalScore;
+          (this.score + this.allTargetCards.length * 3) /
+          (this.allTargetCards.length * 3 * 2);
 
         if (this.challengeInformation.type === 'send') {
           sendChallenge(
@@ -707,6 +718,24 @@ CardSwap.prototype._increaseScoreText = function (
             createChallengeSentTextCallback.bind(this)
           );
         } else {
+          // if it is a challenge then we write challenge sent
+          let result = null;
+          if (
+            normalizedScore >
+            parseFloat(this.challengeInformation.normalizedScoreToBeat)
+          ) {
+            result = 'win';
+          } else if (
+            normalizedScore ===
+            parseFloat(this.challengeInformation.normalizedScoreToBeat)
+          ) {
+            result = 'tie';
+          } else if (
+            normalizedScore <
+            parseFloat(this.challengeInformation.normalizedScoreToBeat)
+          ) {
+            result = 'lose';
+          }
           const createChallengeReceiveTextCallback = function (data) {
             if (!data.success) {
               console.error(
@@ -714,28 +743,22 @@ CardSwap.prototype._increaseScoreText = function (
               );
               return;
             }
-            // if it is a challenge then we write challenge sent
             this.challengeReceiveText = ButtonFactoryText(
               this.screenWidth * 0.4,
               this.screenHeight * 0.6,
-              `You ${
-                normalizedScore >
-                this.challengeInformation.normalizedScoreToBeat
-                  ? 'Win!'
-                  : 'Lost!'
-              }`,
+              `You ${result}!`,
               { fill: '#fff', fontSize: 35 }
             );
             this.addChild(this.challengeReceiveText);
           };
-          // if receiving
+          // update the result to the receiving player
           sendChallenge(
             this.challengeInformation.challengePrimaryKey,
             this.userInfo.id,
             this.challengeInformation.challengedPlayer,
             normalizedScore,
             'receive',
-            normalizedScore > this.challengeInformation.normalizedScoreToBeat,
+            result,
             createChallengeReceiveTextCallback.bind(this)
           );
         }
@@ -772,6 +795,28 @@ CardSwap.prototype._calculateScore = function () {
     swapCard.flipCard(this);
   }
 
+  // add the times played(leaderboard and info), highest level(leaderboard) for this user
+  this.userInfo.timesPlayed += 1;
+  const self = this;
+  updateUser(this.userInfo, (data) => {
+    if (!data.success) console.log('error updating user information');
+    updateLeaderboard(
+      self.userInfo.id,
+      'timesPlayed',
+      self.userInfo.timesPlayed,
+      (data) => {
+        if (!data.success) console.error('error updating leaderboard');
+        updateLeaderboard(
+          self.userInfo.id,
+          'highestLevel',
+          self.userInfo.level,
+          (data) => {
+            if (!data.success) console.error('error updating leaderboard');
+          }
+        );
+      }
+    );
+  });
   let totalScore = 0;
 
   // calculate  the score for each guessed target card
@@ -828,7 +873,8 @@ CardSwap.prototype._calculateScore = function () {
     mostRecentScores.reduce((a, b) => a + b, 0) / mostRecentScores.length;
   // each target card is max 3 score. Since, there is negative we times 2
   const normalizedScore =
-    (this.score + this.allTargetCards.length * 3) / totalScore;
+    (this.score + this.allTargetCards.length * 3) /
+    (this.allTargetCards.length * 3 * 2);
 
   const scoreThreshold = Math.floor(this.allTargetCards.length * 3 * 0.7);
   // update user level
@@ -839,52 +885,91 @@ CardSwap.prototype._calculateScore = function () {
       if (this.userInfo.level < this.difficulty + 1)
         this.userInfo.level = this.difficulty + 1;
     }
-    this.userInfo.timesPlayed += 1;
-    updateUser(this.userInfo, (data) => {
-      if (!data.success) console.log('error updating user information');
-    });
-    updateLeaderboard(
-      this.userInfo.id,
-      'timesPlayed',
-      null,
-      this.userInfo.timesPlayed,
-      (data) => {
-        if (!data.success) console.error('error updating leaderboard');
-      }
-    );
     updateLeaderboard(
       this.userInfo.id,
       'highestlevel',
-      null,
-      this.difficulty,
+      this.userInfo.level,
       (data) => {
         if (!data.success) console.error('error updating leaderboard');
       }
     );
   } else {
-    if (!this.userInfo.wins) this.userInfo.wins = 0;
-    if (!this.userInfo.loses) this.userInfo.loses = 0;
-
-    if (normalizedScore > this.challengeInformation.normalizedScoreToBeat) {
-      this.userInfo.wins++;
-    } else {
-      this.userInfo.loses++;
-    }
-    // if it is a challenge
-    updateUser(this.userInfo, (data) => {
-      if (!data.success) console.error('error updating user information');
-    });
-    const winningRate =
-      this.userInfo.wins / (this.userInfo.wins + this.userInfo.loses);
-    updateLeaderboard(
-      this.userInfo.id,
-      'winningRate',
-      null,
-      winningRate,
-      (data) => {
-        if (!data.success) console.error('error updating leaderboard');
+    // if it is a receiving challenge then we update the player's win/lose values
+    if (this.challengeInformation.type === 'receive') {
+      // update the current player winning rate
+      if (!this.userInfo.wins) this.userInfo.wins = 0;
+      if (!this.userInfo.loses) this.userInfo.loses = 0;
+      if (
+        normalizedScore >
+        parseFloat(this.challengeInformation.normalizedScoreToBeat)
+      ) {
+        this.userInfo.wins++;
+      } else if (
+        normalizedScore <
+        parseFloat(this.challengeInformation.normalizedScoreToBeat)
+      ) {
+        this.userInfo.loses++;
       }
-    );
+      // update user win lose
+      updateUser(this.userInfo, (data) => {
+        if (!data.success) console.error('error updating user information');
+      });
+      const winningRate =
+        this.userInfo.wins / (this.userInfo.wins + this.userInfo.loses);
+      // update win rate
+      updateLeaderboard(
+        this.userInfo.id,
+        'winningRate',
+        winningRate,
+        (data) => {
+          if (!data.success) console.error('error updating leaderboard');
+        }
+      );
+
+      // update the challenged player winning rate
+      let isOppositeWin = null;
+      if (
+        normalizedScore <
+        parseFloat(this.challengeInformation.normalizedScoreToBeat)
+      )
+        isOppositeWin = true;
+      else if (
+        normalizedScore >
+        parseFloat(this.challengeInformation.normalizedScoreToBeat)
+      )
+        isOppositeWin = false;
+      getUser(this.challengeInformation.challengedPlayer, (data) => {
+        if (!data.success)
+          console.error('error getting challenged player information');
+
+        challengedUserInfo = data.userInfo;
+        if (!challengedUserInfo.wins) challengedUserInfo.wins = 0;
+        if (!challengedUserInfo.loses) challengedUserInfo.loses = 0;
+
+        if (
+          normalizedScore <
+          parseFloat(this.challengeInformation.normalizedScoreToBeat)
+        )
+          challengedUserInfo.wins++;
+        else if (
+          normalizedScore >
+          parseFloat(this.challengeInformation.normalizedScoreToBeat)
+        )
+          challengedUserInfo.loses++;
+
+        const challengedUserWinRate =
+          challengedUserInfo.wins /
+          (challengedUserInfo.wins + challengedUserInfo.loses);
+        updateLeaderboard(
+          this.challengeInformation.challengedPlayer,
+          'winningRate',
+          challengedUserWinRate,
+          (data) => {
+            if (!data.success) console.error('error updating leaderboard');
+          }
+        );
+      });
+    }
   }
 
   // show the actual score on the scoreText

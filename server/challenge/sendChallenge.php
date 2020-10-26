@@ -10,7 +10,7 @@ $id = $_POST['userId'];
 $challengedId = $_POST['challengedId'];
 $userNormalizedScore = $_POST['userNormalizedScore'];
 $type = $_POST['type'];
-$isWon = $_POST['isWon']; // only for receive
+$result = $_POST['result']; // only for receive
 $challengePrimaryKey = $_POST['challengePrimaryKey']; // only for receive
 $userIdDir = "${FILE_STORAGE_DIR}/{$id}/";
 $userFilename = "${userIdDir}/challenge.txt";
@@ -61,7 +61,7 @@ function addChallenge($challengePrimaryKey, $filename, $currentId, $userNormaliz
   return $returnValue;
 }
 
-function updateChallenge($challengePrimaryKey, $filename, $isWon) {
+function updateChallenge($challengePrimaryKey, $filename, $result) {
   $returnValue = new stdClass();
 
   if (!file_exists("$filename")) {
@@ -70,7 +70,7 @@ function updateChallenge($challengePrimaryKey, $filename, $isWon) {
   }
 
   $challengeObject = json_decode(file_get_contents($filename));
-  $challengeObject->{$challengePrimaryKey}->isWon = $isWon;
+  $challengeObject->{$challengePrimaryKey}->result = $result;
   file_put_contents($filename, json_encode($challengeObject));
 
   $returnValue = generateResponse($returnValue, 'Successfully added challenge', true);
@@ -96,9 +96,15 @@ if ($type === "send") {
   }
 
 } else if ($type === "receive") {
-    $returnValue = updateChallenge($challengePrimaryKey, $userFilename, $isWon === 'true');
+    $returnValue = updateChallenge($challengePrimaryKey, $userFilename, $result);
     if ($returnValue->success) {
-      $returnValue = updateChallenge($challengePrimaryKey, $challengedUserFilename, $isWon !== 'true');
+      if ($result === "win") { 
+        $result = "lose" ;
+      }
+      else if ($result === "lose") { 
+        $result = "win" ;
+      }
+      $returnValue = updateChallenge($challengePrimaryKey, $challengedUserFilename, $result);
 
       if (!$returnValue->success) {
         $challengeArray = json_decode(file_get_contents($userFilename));

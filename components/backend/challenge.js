@@ -4,7 +4,7 @@ function sendChallenge(
   challengedId,
   userNormalizedScore,
   type,
-  isWon,
+  result,
   callback
 ) {
   $.post(
@@ -15,7 +15,7 @@ function sendChallenge(
       challengedId,
       userNormalizedScore,
       type,
-      isWon,
+      result,
     },
 
     (data) => {

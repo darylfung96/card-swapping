@@ -90,7 +90,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
           .challengePrimaryKey,
       };
       // if there is no result yet
-      if (this.receivedChallengePerPage[pageIndex][i].isWon === undefined) {
+      if (this.receivedChallengePerPage[pageIndex][i].result === undefined) {
         const challengeCallback = function () {
           const difficulty = this.userInfo.level;
           this.startGameCallback(
@@ -114,9 +114,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
         const resultText = ButtonFactoryText(
           rightX,
           startingY + spacingY * i,
-          this.receivedChallengePerPage[pageIndex][i].isWon
-            ? 'You Win!'
-            : 'You Lost!',
+          `${this.receivedChallengePerPage[pageIndex][i].result}!`,
           {
             fill: '#fff',
             fontSize: 25,
@@ -128,13 +126,11 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     } else {
       // if it is a sent challenge
       let textResult = '';
-      if (this.receivedChallengePerPage[pageIndex][i].isWon === undefined) {
+      if (this.receivedChallengePerPage[pageIndex][i].result === undefined)
         textResult = 'pending';
-      } else {
-        textResult = this.receivedChallengePerPage[pageIndex][i].isWon
-          ? 'You Won!'
-          : 'You Lost';
-      }
+      else
+        textResult = `${this.receivedChallengePerPage[pageIndex][i].result}!`;
+
       const resultText = ButtonFactoryText(
         rightX,
         startingY + spacingY * i,

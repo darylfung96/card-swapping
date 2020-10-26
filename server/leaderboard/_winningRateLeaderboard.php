@@ -10,7 +10,6 @@ function createNewWinningRateLeaderboard($leaderboardFilename, $AllLeaderboardIn
 }
 
 function updateWinningRateLeaderboard($leaderboardFilename, $id, $value) {
-  
   if (file_exists($leaderboardFilename)) {
     $AllLeaderboardInfo = json_decode(file_get_contents($leaderboardFilename));
     // if type does not exist, we create it and update leaderboard

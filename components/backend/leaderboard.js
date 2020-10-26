@@ -1,7 +1,7 @@
-function updateLeaderboard(id, type, level, value, callback) {
+function updateLeaderboard(id, type, value, callback) {
   $.post(
     'server/leaderboard/updateLeaderboard.php',
-    { id, type, level, value },
+    { id, type, value },
     (data) => {
       const json_data = JSON.parse(data);
       if (callback) callback(json_data);

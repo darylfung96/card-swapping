@@ -161,7 +161,7 @@ TargetCard.prototype.setGuessScore = function (score) {
     fill: '#fff',
     fontSize: 25,
   });
-  this.scoreSprite.x = this.x - this.width;
+  this.scoreSprite.x = this.x - this.width / 1.5;
   this.scoreSprite.y = this.y;
   this.scoreSprite.anchor.set(0.5);
 };

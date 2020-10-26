@@ -2,6 +2,7 @@
 include '../returnResponse.php';
 include './_timesPlayedLeaderboard.php';
 include './_highestLevelLeaderboard.php';
+include './_winningRateLeaderboard.php';
 include '../common.php';
 
 header('Access-Control-Allow-Origin: *');
@@ -24,15 +25,15 @@ if (!file_exists($userFilename)) {
   echo json_encode($returnValue);
   return;
 }
-
 if (strcmp($type, 'timesPlayed') === 0) {
   echo updateTimesPlayedLeaderboard($LEADERBOARD_FILENAME, $id, $value);
   return;
-} else if (strcmp($type, 'highestLevel' === 0)) {
+} else if (strcmp($type, 'highestLevel') === 0) {
   echo updateHighestlevelLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
   return;
-} else if (strcmp($type, 'winningRate' === 0)) {
+} else if (strcmp($type, 'winningRate') === 0) {
   echo updateWinningRateLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
+  return;
 }
 
 ?>
