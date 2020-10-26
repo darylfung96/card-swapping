@@ -89,20 +89,42 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
         challengePrimaryKey: this.receivedChallengePerPage[pageIndex][i]
           .challengePrimaryKey,
       };
-      const challengeCallback = function () {
-        const difficulty = this.userInfo.level;
-        this.startGameCallback(difficulty, this.userInfo, challengeInformation);
-      };
-      const acceptButton = ButtonFactory(
-        rightX,
-        startingY + spacingY * i,
-        this.screenWidth * 0.21,
-        this.screenHeight * 0.07,
-        'resources/buttons/button_accept.png',
-        challengeCallback.bind(this)
-      );
-      this.receivedChallengePerPageChildren.push(acceptButton);
-      this.addChild(acceptButton);
+      // if there is no result yet
+      if (this.receivedChallengePerPage[pageIndex][i].isWon === undefined) {
+        const challengeCallback = function () {
+          const difficulty = this.userInfo.level;
+          this.startGameCallback(
+            difficulty,
+            this.userInfo,
+            challengeInformation
+          );
+        };
+        const acceptButton = ButtonFactory(
+          rightX,
+          startingY + spacingY * i,
+          this.screenWidth * 0.21,
+          this.screenHeight * 0.07,
+          'resources/buttons/button_accept.png',
+          challengeCallback.bind(this)
+        );
+        this.receivedChallengePerPageChildren.push(acceptButton);
+        this.addChild(acceptButton);
+      } else {
+        // add the result (win or lose)
+        const resultText = ButtonFactoryText(
+          rightX,
+          startingY + spacingY * i,
+          this.receivedChallengePerPage[pageIndex][i].isWon
+            ? 'You Win!'
+            : 'You Lost!',
+          {
+            fill: '#fff',
+            fontSize: 25,
+          }
+        );
+        this.receivedChallengePerPageChildren.push(resultText);
+        this.addChild(resultText);
+      }
     } else {
       // if it is a sent challenge
       let textResult = '';
