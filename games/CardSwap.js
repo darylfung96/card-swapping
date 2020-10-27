@@ -710,6 +710,7 @@ CardSwap.prototype._increaseScoreText = function (
         if (this.challengeInformation.type === 'send') {
           sendChallenge(
             null,
+            this.seed,
             this.userInfo.id,
             this.challengeInformation.challengedPlayer,
             normalizedScore,
@@ -754,6 +755,7 @@ CardSwap.prototype._increaseScoreText = function (
           // update the result to the receiving player
           sendChallenge(
             this.challengeInformation.challengePrimaryKey,
+            this.seed,
             this.userInfo.id,
             this.challengeInformation.challengedPlayer,
             normalizedScore,

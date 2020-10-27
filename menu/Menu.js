@@ -97,23 +97,6 @@ Menu.prototype.__createMainTexts = function () {
   this.addChild(this.leaderboardText);
 };
 
-Menu.prototype.__createLogoutText = function () {
-  const self = this;
-  const logoutCallback = function () {
-    setCookie('id', '', -1);
-    self._removeMainPage();
-    self._createLoginPage();
-  };
-  this.logoutText = ButtonFactoryText(
-    this.screenWidth * 0.9,
-    this.screenHeight * 0.1,
-    'Logout',
-    { fill: '#fff', fontSize: 20 },
-    logoutCallback
-  );
-  this.addChild(this.logoutText);
-};
-
 Menu.prototype._removeMainPage = function () {
   if (this.playGameText) this.removeChild(this.playGameText);
   if (this.leaderboardText) this.removeChild(this.leaderboardText);
@@ -122,7 +105,6 @@ Menu.prototype._removeMainPage = function () {
 
 Menu.prototype._createMainPage = function () {
   this.__createMainTexts();
-  this.__createLogoutText();
 };
 
 //========================= initialize =========================//
@@ -140,6 +122,7 @@ Menu.prototype._initialize = function () {
     this.userInfo = data.userInfo;
     this._createMainPage();
   };
+  console.log(id);
   if (!id) {
     this._createLoginPage();
   } else {

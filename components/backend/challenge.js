@@ -1,5 +1,6 @@
 function sendChallenge(
   challengePrimaryKey,
+  seed,
   userId,
   challengedId,
   userNormalizedScore,
@@ -11,6 +12,7 @@ function sendChallenge(
     'server/challenge/sendChallenge.php',
     {
       challengePrimaryKey,
+      seed,
       userId,
       challengedId,
       userNormalizedScore,

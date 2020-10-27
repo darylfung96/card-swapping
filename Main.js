@@ -56,15 +56,13 @@ Main.prototype.returnMenuCallback = function () {
  * startGameCallback is a function that starts the CardSwap game by changing the renderingContainer inside Main class
  * @param {int} difficulty - The level of the cardswap game
  * @param {object} userInfo - the information of the current  player
- * @param {object} challengeInformation - The challenge information if applicable {type: 'receive'or'send', challengedPlayer: 'playerChallenged', normalizedScoreToBeat: 'normalized score to beat'}
+ * @param {object} challengeInformation - The challenge information if applicable {type: 'receive'or'send', challengedPlayer: 'playerChallenged', normalizedScoreToBeat: 'normalized score to beat', 'seed': seedValue}
  */
 Main.prototype.startGameCallback = function (
   difficulty,
   userInfo,
-  challengeInformation,
-  challegedPlayerName
+  challengeInformation
 ) {
-  let seed = getUrlParameter('seed') || '1';
   const npc = getUrlParameter('npc') || null;
   let numPlayers = getUrlParameter('numPlayers') || null;
 
@@ -74,7 +72,7 @@ Main.prototype.startGameCallback = function (
   }
 
   // randomize the seed
-  seed = createRandomString(10);
+  const seed = challengeInformation.seed || createRandomString(10);
 
   if (numPlayers) {
     this.renderingContainer = new CardSwapMultiplayerContainer(

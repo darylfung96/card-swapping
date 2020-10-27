@@ -7,6 +7,7 @@ header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 
 $id = $_POST['userId'];
+$seed = $_POST['seed'];
 $challengedId = $_POST['challengedId'];
 $userNormalizedScore = $_POST['userNormalizedScore'];
 $type = $_POST['type'];
@@ -20,6 +21,7 @@ $returnValue->id = $id;
 $returnValue->challengedId = $challengedId;
 $returnValue->userNormalizedScore = $userNormalizedScore;
 $returnValue->type = $type;
+$returnValue->seed = $seed;
 
 $challengedIdDir = "${FILE_STORAGE_DIR}/{$challengedId}/";
 $challengedUserFilename = "{$challengedIdDir}/challenge.txt";
@@ -42,7 +44,7 @@ function getNextChallengeId($globalChallengeIdFilename) {
 }
 
 
-function addChallenge($challengePrimaryKey, $filename, $currentId, $userNormalizedScore, $type) {
+function addChallenge($challengePrimaryKey, $filename, $currentId, $userNormalizedScore, $type, $seed) {
   $challengeObject = new stdClass();
   if (file_exists("$filename")) {
     // if file exist
@@ -55,6 +57,7 @@ function addChallenge($challengePrimaryKey, $filename, $currentId, $userNormaliz
   $challengeObject->{$challengePrimaryKey}->score = $userNormalizedScore;
   $challengeObject->{$challengePrimaryKey}->type = $type;
   $challengeObject->{$challengePrimaryKey}->challengePrimaryKey = $challengePrimaryKey;
+  $challengeObject->{$challengePrimaryKey}->seed = $seed;
   file_put_contents($filename, json_encode($challengeObject)) or die('Unable to save serialized json into file');
   $returnValue = new stdClass();
   $returnValue = generateResponse($returnValue, 'Successfully added challenge', true);
@@ -82,10 +85,10 @@ $returnValue = new stdClass();
 if ($type === "send") {
   $challengePrimaryKey = getNextChallengeId($globalChallengeIdFilename);
   // add challenge to user that sends the challenge
-  $returnValue = addChallenge($challengePrimaryKey, $userFilename, $challengedId, $userNormalizedScore, 'send');
+  $returnValue = addChallenge($challengePrimaryKey, $userFilename, $challengedId, $userNormalizedScore, 'send', $seed);
   if ($returnValue->success) {
     // add challenge to user receiving the challenge
-    $returnValue = addChallenge($challengePrimaryKey, $challengedUserFilename, $id, $userNormalizedScore, 'receive');
+    $returnValue = addChallenge($challengePrimaryKey, $challengedUserFilename, $id, $userNormalizedScore, 'receive', $seed);
 
     // if the receive insertion is not successful, then we remove the insertion of the send
     if (!$returnValue->success) {

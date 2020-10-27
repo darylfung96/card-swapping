@@ -3,33 +3,29 @@ Menu.prototype._enterMainPage = function () {
   const id = this.idText.text;
 
   if (this.errorText) this.removeChild(this.errorText);
-  const getUserCallback = function (data) {
+  const createUserCallback = function (data) {
     if (!data.success) {
-      this.errorText = ButtonFactoryText(
-        this.screenWidth * 0.5,
-        this.screenHeight * 0.3,
-        `Error: ${data.msg}`,
-        { fill: 'red', fontSize: 25 }
-      );
+      this.errorText = new PIXI.Text(`Error: ${data.msg}`, {
+        fill: 'red',
+        fontSize: 25,
+      });
+      this.errorText.x = this.screenWidth * 0.5;
+      this.errorText.y = this.screenHeight * 0.3;
+      this.errorText.anchor.set(0.5);
       this.addChild(this.errorText);
-      return;
+    } else {
+      // successfully created user
+      setCookie('id', id, 365);
+      this._removeLoginPage();
+      this._createMainPage();
     }
-    setCookie('id', id, 30);
-    this.userInfo = data.userInfo;
-    this._removeLoginPage();
-    this._createMainPage();
   };
-  getUser(id, getUserCallback.bind(this));
-};
-
-Menu.prototype._enterSignupPage = function () {
-  this._removeLoginPage();
-  this._createSignupPage();
+  createUser(id, createUserCallback.bind(this));
 };
 
 Menu.prototype._createLoginPage = function () {
   // current method (login or create id)
-  this.isLoginText = new PIXI.Text('Sign In', { fill: '#fff', fontSize: 25 });
+  this.isLoginText = new PIXI.Text('Name', { fill: '#fff', fontSize: 25 });
   this.isLoginText.x = this.screenWidth * 0.5;
   this.isLoginText.y = this.screenHeight * 0.25;
   this.isLoginText.anchor.set(0.5);
@@ -56,7 +52,7 @@ Menu.prototype._createLoginPage = function () {
       disabled: { fill: 0xdbdbdb, rounded: 12 },
     },
   });
-  this.idText.placeholder = 'Enter your ID to sign in';
+  this.idText.placeholder = 'What is your name?';
   this.idText.x = this.screenWidth * 0.5;
   this.idText.y = this.screenHeight * 0.4;
   this.idText.pivot.x = this.idText.width / 2;
@@ -72,15 +68,7 @@ Menu.prototype._createLoginPage = function () {
     this._enterMainPage.bind(this)
   );
 
-  this.createIdText = ButtonFactoryText(
-    this.screenWidth * 0.5,
-    this.screenHeight * 0.55,
-    'Click here to create ID',
-    { fill: '#fff', fontSize: 20 },
-    this._enterSignupPage.bind(this)
-  );
   this.addChild(this.enterText);
-  this.addChild(this.createIdText);
 };
 
 Menu.prototype._removeLoginPage = function () {

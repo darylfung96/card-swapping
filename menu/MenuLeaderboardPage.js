@@ -547,6 +547,10 @@ Menu.prototype._createLeaderboardPage = function () {
       ...this.mostPlayedText.style,
       fontWeight: '500',
     };
+    this.winningRateText.style = {
+      ...this.winningRateText.style,
+      fontWeight: '500',
+    };
     this.highestLevelText.style = {
       ...this.highestLevelText.style,
       fontWeight: '600',
@@ -573,4 +577,5 @@ Menu.prototype._removeLeaderboardPage = function () {
   this.removeChild(this.winningRateText);
   this._removeMostPlayed();
   this._removeHighestLevel();
+  this._removeWinningRate();
 };

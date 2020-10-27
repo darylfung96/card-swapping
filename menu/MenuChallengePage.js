@@ -88,6 +88,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
         normalizedScoreToBeat: normalizedScoreToBeat,
         challengePrimaryKey: this.receivedChallengePerPage[pageIndex][i]
           .challengePrimaryKey,
+        seed: this.receivedChallengePerPage[pageIndex][i].seed,
       };
       // if there is no result yet
       if (this.receivedChallengePerPage[pageIndex][i].result === undefined) {
