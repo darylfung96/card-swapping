@@ -5,7 +5,7 @@
  * @param {int} screenHeight - the height of the game screen
  * @param {int} difficulty - the difficulty of the game
  * @param {string} seed - the seed provided to randomize the card swapping
- * @param {string} npc - if there is an npc that player is playing against (hard, medium, easy)
+ * @param {string} npcLevel - the level of NPC (hard, medium, easy), otherwise it should be null
  * @param {object} userInfo - the information of the current user
  * @param {object} challengeInformation - The challenge information if applicable {type: 'send'or'receive', challengedPlayer: 'challengedPlayerId', 'normalizedScoreToBeat?': 1}
  * @param {function} startGameCallback - the function callback to restart the game
@@ -16,7 +16,7 @@ function CardSwap(
   screenHeight,
   difficulty,
   seed,
-  npc,
+  npcLevel,
   userInfo,
   challengeInformation,
   startGameCallback,
@@ -55,13 +55,13 @@ function CardSwap(
   this.difficulty = difficulty;
   this.levelText = false;
   this.seed = seed;
-  this.npc = npc;
+  this.npcLevel = npcLevel;
   this.NPCScore = null;
 
   this.SWAPPING_SECONDS = 20;
   Math.seedrandom(seed);
   this._initializeSettings(difficulty); // pass in difficulty
-  this._generateNPCScore(npc);
+  this._generateNPCScore(npcLevel);
   this._initialize();
 }
 CardSwap.prototype = Object.create(GameContainer.prototype);
@@ -69,10 +69,10 @@ CardSwap.prototype = Object.create(GameContainer.prototype);
 /**
  * _generateNPCScore generates the NPC scores
  *
- * @param {string} npc - the npc difficulty (hard, medium, easy)
+ * @param {string} npcLevel - the npc difficulty (hard, medium, easy)
  */
-CardSwap.prototype._generateNPCScore = function (npc) {
-  if (npc === null) return;
+CardSwap.prototype._generateNPCScore = function (npcLevel) {
+  if (npcLevel === null) return;
 
   const generateNPCScore = function (min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -92,7 +92,7 @@ CardSwap.prototype._generateNPCScore = function (npc) {
   };
 
   for (let i = 0; i < this.numTargetCards; i++) {
-    this.NPCScore += NPCDiffiToScores[npc]();
+    this.NPCScore += NPCDiffiToScores[npcLevel]();
   }
 };
 
@@ -681,7 +681,12 @@ CardSwap.prototype._increaseScoreText = function (
           'Play Again',
           { fill: '#fff', fontSize: 35 },
           () => {
-            this.startGameCallback(this.difficulty, this.userInfo);
+            this.startGameCallback(
+              this.difficulty,
+              this.userInfo,
+              null,
+              this.npcLevel
+            );
           }
         );
         this.addChild(this.playAgainText);
@@ -796,29 +801,6 @@ CardSwap.prototype._calculateScore = function () {
   for (const swapCard of this.allSwapCards) {
     swapCard.flipCard(this);
   }
-
-  // add the times played(leaderboard and info), highest level(leaderboard) for this user
-  this.userInfo.timesPlayed += 1;
-  const self = this;
-  updateUser(this.userInfo, (data) => {
-    if (!data.success) console.log('error updating user information');
-    updateLeaderboard(
-      self.userInfo.id,
-      'timesPlayed',
-      self.userInfo.timesPlayed,
-      (data) => {
-        if (!data.success) console.error('error updating leaderboard');
-        updateLeaderboard(
-          self.userInfo.id,
-          'highestLevel',
-          self.userInfo.level,
-          (data) => {
-            if (!data.success) console.error('error updating leaderboard');
-          }
-        );
-      }
-    );
-  });
   let totalScore = 0;
 
   // calculate  the score for each guessed target card
@@ -887,15 +869,33 @@ CardSwap.prototype._calculateScore = function () {
       if (this.userInfo.level < this.difficulty + 1)
         this.userInfo.level = this.difficulty + 1;
     }
+  }
+
+  // add the times played(leaderboard and info), highest level(leaderboard) for this user
+  this.userInfo.timesPlayed += 1;
+  const self = this;
+  updateUser(this.userInfo, (data) => {
+    if (!data.success) console.log('error updating user information');
     updateLeaderboard(
-      this.userInfo.id,
-      'highestlevel',
-      this.userInfo.level,
+      self.userInfo.id,
+      'timesPlayed',
+      self.userInfo.timesPlayed,
       (data) => {
         if (!data.success) console.error('error updating leaderboard');
+        updateLeaderboard(
+          self.userInfo.id,
+          'highestLevel',
+          self.userInfo.level,
+          (data) => {
+            if (!data.success) console.error('error updating leaderboard');
+          }
+        );
       }
     );
-  } else {
+  });
+
+  // calculate function if this is a challenge
+  if (this.challengeInformation) {
     // if it is a receiving challenge then we update the player's win/lose values
     if (this.challengeInformation.type === 'receive') {
       // update the current player winning rate
@@ -912,21 +912,21 @@ CardSwap.prototype._calculateScore = function () {
       ) {
         this.userInfo.loses++;
       }
-      // update user win lose
-      updateUser(this.userInfo, (data) => {
-        if (!data.success) console.error('error updating user information');
-      });
       const winningRate =
         this.userInfo.wins / (this.userInfo.wins + this.userInfo.loses);
-      // update win rate
-      updateLeaderboard(
-        this.userInfo.id,
-        'winningRate',
-        winningRate,
-        (data) => {
-          if (!data.success) console.error('error updating leaderboard');
-        }
-      );
+      // update user win lose and leaderboard winning rate
+      updateUser(this.userInfo, (data) => {
+        if (!data.success) console.error('error updating user information');
+        // update win rate
+        updateLeaderboard(
+          this.userInfo.id,
+          'winningRate',
+          winningRate,
+          (data) => {
+            if (!data.success) console.error('error updating leaderboard');
+          }
+        );
+      });
 
       // update the challenged player winning rate
       let isOppositeWin = null;
@@ -962,14 +962,19 @@ CardSwap.prototype._calculateScore = function () {
         const challengedUserWinRate =
           challengedUserInfo.wins /
           (challengedUserInfo.wins + challengedUserInfo.loses);
-        updateLeaderboard(
-          this.challengeInformation.challengedPlayer,
-          'winningRate',
-          challengedUserWinRate,
-          (data) => {
-            if (!data.success) console.error('error updating leaderboard');
-          }
-        );
+
+        updateUser(challengedUserInfo, (data) => {
+          if (!data.success)
+            console.error('error updating challenged user information');
+          updateLeaderboard(
+            this.challengeInformation.challengedPlayer,
+            'winningRate',
+            challengedUserWinRate,
+            (data) => {
+              if (!data.success) console.error('error updating leaderboard');
+            }
+          );
+        });
       });
     }
   }

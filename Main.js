@@ -57,13 +57,14 @@ Main.prototype.returnMenuCallback = function () {
  * @param {int} difficulty - The level of the cardswap game
  * @param {object} userInfo - the information of the current  player
  * @param {object} challengeInformation - The challenge information if applicable {type: 'receive'or'send', challengedPlayer: 'playerChallenged', normalizedScoreToBeat: 'normalized score to beat', 'seed': seedValue}
+ * @param {boolean} isNPC - is playing against
  */
 Main.prototype.startGameCallback = function (
   difficulty,
   userInfo,
-  challengeInformation
+  challengeInformation,
+  npcLevel
 ) {
-  const npc = getUrlParameter('npc') || null;
   let numPlayers = getUrlParameter('numPlayers') || null;
 
   // max player is 4 and min player is 1
@@ -72,7 +73,10 @@ Main.prototype.startGameCallback = function (
   }
 
   // randomize the seed
-  const seed = challengeInformation.seed || createRandomString(10);
+  let seed = createRandomString(10);
+  if (challengeInformation && challengeInformation.seed) {
+    seed = challengeInformation.seed;
+  }
 
   if (numPlayers) {
     this.renderingContainer = new CardSwapMultiplayerContainer(
@@ -88,7 +92,7 @@ Main.prototype.startGameCallback = function (
       this.height,
       difficulty,
       seed,
-      npc,
+      npcLevel,
       userInfo,
       challengeInformation || null,
       this.startGameCallback.bind(this),

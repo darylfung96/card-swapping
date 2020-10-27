@@ -43,10 +43,107 @@ Menu.prototype._removePlayPage = function () {
 };
 
 //========================= single player page =========================//
-Menu.prototype.__createSingleLevels = function () {
+Menu.prototype._createSinglePage = function () {
+  const backCallback = function () {
+    this._removeSinglePage();
+    this._createPlayPage();
+  };
+  this.backButton = this.__createBackButton(backCallback.bind(this));
+  this.addChild(this.backButton);
+
+  // solo player
+  const soloCallback = function () {
+    this._removeSinglePage();
+    this._createSoloPage();
+  };
+  this.soloPlayerText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.4,
+    'Solo Player',
+    { fill: '#fff', fontSize: 30 },
+    soloCallback.bind(this)
+  );
+  this.addChild(this.soloPlayerText);
+
+  // play against npc
+  const npcCallback = function () {
+    this._removeSinglePage();
+    this._createNPCPage();
+  };
+  this.npcPlayerText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.5,
+    'Play Against NPC',
+    { fill: '#fff', fontSize: 30 },
+    npcCallback.bind(this)
+  );
+  this.addChild(this.npcPlayerText);
+};
+
+Menu.prototype._removeSinglePage = function () {
+  this.removeChild(this.backButton);
+  this.removeChild(this.soloPlayerText);
+  this.removeChild(this.npcPlayerText);
+};
+
+//========================= NPC page =========================//
+Menu.prototype._createNPCPage = function () {
+  const backCallback = function () {
+    this._removeNPCPage();
+    this._createSinglePage();
+  };
+  this.backButton = this.__createBackButton(backCallback.bind(this));
+  this.addChild(this.backButton);
+
+  // NPC levels
+  this.easyLevelText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.4,
+    'Easy',
+    { fill: '#fff', fontSize: 30 },
+    () => {
+      this.startGameCallback(this.userInfo.level, this.userInfo, null, 'easy');
+    }
+  );
+  this.mediumLevelText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.5,
+    'Medium',
+    { fill: '#fff', fontSize: 30 },
+    () => {
+      this.startGameCallback(
+        this.userInfo.level,
+        this.userInfo,
+        null,
+        'medium'
+      );
+    }
+  );
+  this.hardLevelText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.6,
+    'Hard',
+    { fill: '#fff', fontSize: 30 },
+    () => {
+      this.startGameCallback(this.userInfo.level, this.userInfo, null, 'hard');
+    }
+  );
+  this.addChild(this.easyLevelText);
+  this.addChild(this.mediumLevelText);
+  this.addChild(this.hardLevelText);
+};
+Menu.prototype._removeNPCPage = function () {
+  this.removeChild(this.backButton);
+  this.removeChild(this.easyLevelText);
+  this.removeChild(this.mediumLevelText);
+  this.removeChild(this.hardLevelText);
+};
+
+//========================= solo player page =========================//
+Menu.prototype.__createSoloLevels = function () {
   const id = getCookie('id');
   const self = this;
-  self.singleLevels = [];
+  self.soloLevels = [];
 
   const startingRow = this.screenHeight * 0.3;
   const startingCol = this.screenWidth * 0.3;
@@ -93,8 +190,8 @@ Menu.prototype.__createSingleLevels = function () {
       currentLevelText.y = startingRow + spacing * Math.floor(i / 4);
       currentLevelText.anchor.set(0.5);
 
-      self.singleLevels.push(currentLevel);
-      self.singleLevels.push(currentLevelText);
+      self.soloLevels.push(currentLevel);
+      self.soloLevels.push(currentLevelText);
       self.addChild(currentLevel);
       self.addChild(currentLevelText);
     }
@@ -103,10 +200,10 @@ Menu.prototype.__createSingleLevels = function () {
   getUser(id, createLevels);
 };
 
-Menu.prototype._createSinglePage = function () {
+Menu.prototype._createSoloPage = function () {
   const backCallback = function () {
-    this._removeSinglePage();
-    this._createPlayPage();
+    this._removeSoloPage();
+    this._createSinglePage();
   };
   this.backButton = this.__createBackButton(backCallback.bind(this));
   this.addChild(this.backButton);
@@ -120,13 +217,13 @@ Menu.prototype._createSinglePage = function () {
   );
   this.addChild(this.playerLevelText);
 
-  this.__createSingleLevels();
+  this.__createSoloLevels();
 };
 
-Menu.prototype._removeSinglePage = function () {
+Menu.prototype._removeSoloPage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.playerLevelText);
-  for (const singleLevel of this.singleLevels) {
-    this.removeChild(singleLevel);
+  for (const soloLevels of this.soloLevels) {
+    this.removeChild(soloLevels);
   }
 };
