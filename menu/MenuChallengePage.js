@@ -9,10 +9,22 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     this.removeChild(this.prevButton);
     this.removeChild(this.nextButton);
   }
-  // don't list any players if no players are found
-  if (this.receivedChallengePerPage.length === 0) return;
-  console.log(this.receivedChallengePerPage);
+
+  // add the children that is added to the container so we can remove them afterwards
   this.receivedChallengePerPageChildren = [];
+
+  // don't list any players if no players are found
+  if (this.receivedChallengePerPage.length === 0) {
+    this.emptyText = ButtonFactoryText(
+      this.screenWidth * 0.5,
+      this.screenHeight * 0.4,
+      'There are no challenges received or sent yet',
+      { fill: '#fff', fontSize: 25 }
+    );
+    this.receivedChallengePerPageChildren.push(this.emptyText);
+    this.addChild(this.emptyText);
+    return;
+  }
   const leftX = this.screenWidth * 0.2;
   const middleX = this.screenWidth * 0.5;
   const rightX = this.screenWidth * 0.8;
@@ -97,7 +109,8 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
           this.startGameCallback(
             difficulty,
             this.userInfo,
-            challengeInformation
+            challengeInformation,
+            null
           );
         };
         const acceptButton = ButtonFactory(
@@ -230,10 +243,22 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
     this.removeChild(this.prevButton);
     this.removeChild(this.nextButton);
   }
-  // don't list any players if no players are found
-  if (this.allPlayersPerPage.length === 0) return;
 
+  // add the children that is added to the container so we can remove them afterwards
   this.allPlayersPerPageChildren = [];
+  // don't list any players if no players are found
+  if (this.allPlayersPerPage.length === 0) {
+    this.emptyText = ButtonFactoryText(
+      this.screenWidth * 0.5,
+      this.screenHeight * 0.4,
+      'There are no players yet',
+      { fill: '#fff', fontSize: 25 }
+    );
+    this.allPlayersPerPageChildren.push(this.emptyText);
+    this.addChild(this.emptyText);
+    return;
+  }
+
   const leftX = this.screenWidth * 0.2;
   const middleX = this.screenWidth * 0.5;
   const rightX = this.screenWidth * 0.8;
@@ -292,7 +317,12 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
         challengedPlayer: currentPlayer,
       };
       const difficulty = this.userInfo.level;
-      this.startGameCallback(difficulty, this.userInfo, challengeInformation);
+      this.startGameCallback(
+        difficulty,
+        this.userInfo,
+        challengeInformation,
+        null
+      );
     };
     const challengeButton = ButtonFactory(
       rightX,

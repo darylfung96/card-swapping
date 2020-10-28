@@ -175,12 +175,14 @@ Menu.prototype.__createSoloLevels = function () {
       currentLevel.alpha = 0.4;
       currentLevel.interactive = true;
       currentLevel.buttonMode = true;
+      const currentStartCallback = () => {
+        self.startGameCallback(i + 1, self.userInfo, null, null);
+      };
       currentLevel
         .on('mouseover', mouseOver)
         .on('mouseout', mouseOut)
-        .on('mousedown', () => {
-          self.startGameCallback(i + 1, self.userInfo, null, null);
-        });
+        .on('mousedown', currentStartCallback)
+        .on('touchend', currentStartCallback);
       const currentLevelText = new PIXI.Text(`level ${i + 1}`, {
         fill: '#fff',
         fontSize: 20,

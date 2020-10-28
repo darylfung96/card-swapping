@@ -400,10 +400,10 @@ CardSwap.prototype._startSwapping = function () {
     this.isAllSwappingDone = true;
     this.isGuessing = true;
     // start timer for guessing
-    this._createCountdown(8, this._calculateScore.bind(this));
+    this._createCountdown(20, this._calculateScore.bind(this));
   };
   // stop swapping after 20 seconds
-  this._createCountdown(1, setAllSwappingDone.bind(this));
+  this._createCountdown(20, setAllSwappingDone.bind(this));
 
   // poll to make sure swapping is complete before calling more swapping cards
   const self = this;
@@ -914,67 +914,57 @@ CardSwap.prototype._calculateScore = function () {
       }
       const winningRate =
         this.userInfo.wins / (this.userInfo.wins + this.userInfo.loses);
-      // update user win lose and leaderboard winning rate
+      // update current user win lose and leaderboard winning rate
       updateUser(this.userInfo, (data) => {
         if (!data.success) console.error('error updating user information');
-        // update win rate
+        // update current user win rate
         updateLeaderboard(
           this.userInfo.id,
           'winningRate',
           winningRate,
           (data) => {
             if (!data.success) console.error('error updating leaderboard');
+
+            // update the challenged player winning rate
+            getUser(this.challengeInformation.challengedPlayer, (data) => {
+              if (!data.success)
+                console.error('error getting challenged player information');
+
+              challengedUserInfo = data.userInfo;
+              if (!challengedUserInfo.wins) challengedUserInfo.wins = 0;
+              if (!challengedUserInfo.loses) challengedUserInfo.loses = 0;
+
+              if (
+                normalizedScore <
+                parseFloat(this.challengeInformation.normalizedScoreToBeat)
+              )
+                challengedUserInfo.wins++;
+              else if (
+                normalizedScore >
+                parseFloat(this.challengeInformation.normalizedScoreToBeat)
+              )
+                challengedUserInfo.loses++;
+
+              const challengedUserWinRate =
+                challengedUserInfo.wins /
+                (challengedUserInfo.wins + challengedUserInfo.loses);
+
+              updateUser(challengedUserInfo, (data) => {
+                if (!data.success)
+                  console.error('error updating challenged user information');
+                updateLeaderboard(
+                  this.challengeInformation.challengedPlayer,
+                  'winningRate',
+                  challengedUserWinRate,
+                  (data) => {
+                    if (!data.success)
+                      console.error('error updating leaderboard');
+                  }
+                );
+              });
+            });
           }
         );
-      });
-
-      // update the challenged player winning rate
-      let isOppositeWin = null;
-      if (
-        normalizedScore <
-        parseFloat(this.challengeInformation.normalizedScoreToBeat)
-      )
-        isOppositeWin = true;
-      else if (
-        normalizedScore >
-        parseFloat(this.challengeInformation.normalizedScoreToBeat)
-      )
-        isOppositeWin = false;
-      getUser(this.challengeInformation.challengedPlayer, (data) => {
-        if (!data.success)
-          console.error('error getting challenged player information');
-
-        challengedUserInfo = data.userInfo;
-        if (!challengedUserInfo.wins) challengedUserInfo.wins = 0;
-        if (!challengedUserInfo.loses) challengedUserInfo.loses = 0;
-
-        if (
-          normalizedScore <
-          parseFloat(this.challengeInformation.normalizedScoreToBeat)
-        )
-          challengedUserInfo.wins++;
-        else if (
-          normalizedScore >
-          parseFloat(this.challengeInformation.normalizedScoreToBeat)
-        )
-          challengedUserInfo.loses++;
-
-        const challengedUserWinRate =
-          challengedUserInfo.wins /
-          (challengedUserInfo.wins + challengedUserInfo.loses);
-
-        updateUser(challengedUserInfo, (data) => {
-          if (!data.success)
-            console.error('error updating challenged user information');
-          updateLeaderboard(
-            this.challengeInformation.challengedPlayer,
-            'winningRate',
-            challengedUserWinRate,
-            (data) => {
-              if (!data.success) console.error('error updating leaderboard');
-            }
-          );
-        });
       });
     }
   }
@@ -1237,5 +1227,5 @@ CardSwap.prototype._initialize = function () {
   this._createLevelText();
   this._initializeCards();
   this._createChallengedPlayerText();
-  this._createCountdown(1, this._flipSwapCards.bind(this));
+  this._createCountdown(10, this._flipSwapCards.bind(this));
 };

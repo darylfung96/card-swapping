@@ -143,6 +143,8 @@ Menu.prototype.__createMainTexts = function () {
 Menu.prototype._removeMainPage = function () {
   if (this.playGameText) this.removeChild(this.playGameText);
   if (this.leaderboardText) this.removeChild(this.leaderboardText);
+  if (this.privateCheckbox) this.removeChild(this.privateCheckbox);
+  if (this.privateText) this.removeChild(this.privateText);
 };
 
 Menu.prototype._createMainPage = function () {

@@ -8,7 +8,6 @@ Menu.prototype._getMostPlayed = function (data) {
     console.error('error obtaining most played leaderboard data');
     return;
   }
-
   // if already queried the leaderboard then we just list them instead of processing them
   if (this.processedMostPlayedLeaderboard) {
     this.currentPage = 0;
@@ -587,6 +586,12 @@ Menu.prototype._removeLeaderboardPage = function () {
   this.removeChild(this.mostPlayedText);
   this.removeChild(this.highestLevelText);
   this.removeChild(this.winningRateText);
+
+  // remove the queried items
+  this.processedMostPlayedLeaderboard = null;
+  this.processedWinningRateLeaderboard = null;
+  this.processedHighestLevelLeaderboard = null;
+
   this._removeMostPlayed();
   this._removeHighestLevel();
   this._removeWinningRate();
