@@ -1,7 +1,7 @@
 function updateLeaderboard(id, type, value, callback) {
   console.log(id);
-  console.log(type);
   console.log(value);
+  console.log(type);
   $.post(
     'server/leaderboard/updateLeaderboard.php',
     { id, type, value },

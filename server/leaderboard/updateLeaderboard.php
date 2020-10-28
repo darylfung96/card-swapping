@@ -3,6 +3,7 @@ include '../returnResponse.php';
 include './_timesPlayedLeaderboard.php';
 include './_highestLevelLeaderboard.php';
 include './_winningRateLeaderboard.php';
+include './_privacyLeaderboard.php';
 include '../common.php';
 
 header('Access-Control-Allow-Origin: *');
@@ -33,6 +34,9 @@ if (strcmp($type, 'timesPlayed') === 0) {
   return;
 } else if (strcmp($type, 'winningRate') === 0) {
   echo updateWinningRateLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
+  return;
+} else if (strcmp($type, 'privacy') === 0) { // true will be public, false will be private
+  echo updatePrivacyLeaderboard($LEADERBOARD_FILENAME, $id, $value);
   return;
 }
 

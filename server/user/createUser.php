@@ -13,6 +13,7 @@ $userFilename = "{$userFileDir}/info.txt";
 $userInfo->id = $id;
 $userInfo->timesPlayed = 0;
 $userInfo->level = 1;
+$userInfo->isPublic = true;
 
 $returnValue->userInfo = $userInfo;
 $returnValue->msg = "";

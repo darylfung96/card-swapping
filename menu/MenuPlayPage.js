@@ -179,7 +179,7 @@ Menu.prototype.__createSoloLevels = function () {
         .on('mouseover', mouseOver)
         .on('mouseout', mouseOut)
         .on('mousedown', () => {
-          self.startGameCallback(i + 1, self.userInfo);
+          self.startGameCallback(i + 1, self.userInfo, null, null);
         });
       const currentLevelText = new PIXI.Text(`level ${i + 1}`, {
         fill: '#fff',

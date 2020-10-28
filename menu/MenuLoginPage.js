@@ -16,6 +16,7 @@ Menu.prototype._enterMainPage = function () {
     } else {
       // successfully created user
       setCookie('id', id, 365);
+      this.userInfo = data.userInfo;
       this._removeLoginPage();
       this._createMainPage();
     }

@@ -93,10 +93,15 @@ Menu.prototype._listMostPlayed = function (pageIndex) {
       pageIndex * MAX_ITEM_PER_PAGE + i + 1,
       { fill: '#fff', fontSize: 25 }
     );
+    let currentPlayerName = Object.keys(
+      this.processedMostPlayedLeaderboard[pageIndex][i]
+    )[0];
+    if (currentPlayerName.includes('unknown'))
+      currentPlayerName = currentPlayerName.substring(2);
     const currentPlayer = ButtonFactoryText(
       mostPlayedLeftX,
       mostPlayedStartY + spacingY * (i + 1),
-      Object.keys(this.processedMostPlayedLeaderboard[pageIndex][i])[0],
+      currentPlayerName,
       { fill: '#fff', fontSize: 25 }
     );
     const currentPlayerPlayed = ButtonFactoryText(
@@ -250,10 +255,15 @@ Menu.prototype._listWinningRate = function (pageIndex) {
       pageIndex * MAX_ITEM_PER_PAGE + i + 1,
       { fill: '#fff', fontSize: 25 }
     );
+    let currentPlayerName = Object.keys(
+      this.processedWinningRateLeaderboard[pageIndex][i]
+    )[0];
+    if (currentPlayerName.includes('unknown'))
+      currentPlayerName = currentPlayerName.substring(2);
     const currentPlayer = ButtonFactoryText(
       winningRateLeftX,
       winningRateStartY + spacingY * (i + 1),
-      Object.keys(this.processedWinningRateLeaderboard[pageIndex][i])[0],
+      currentPlayerName,
       { fill: '#fff', fontSize: 25 }
     );
     const currentPlayerWinningRate = ButtonFactoryText(
@@ -398,13 +408,15 @@ Menu.prototype._listHighestLevel = function (pageIndex) {
       currentIndex < this.processedHighestLevelLeaderboard[currentPage].length;
       currentIndex++
     ) {
-      const currentPlayer = Object.keys(
+      let currentPlayer = Object.keys(
         this.processedHighestLevelLeaderboard[currentPage][currentIndex]
       )[0];
       const level = this.processedHighestLevelLeaderboard[currentPage][
         currentIndex
       ][currentPlayer];
       const rank = currentPage * MAX_ITEM_PER_PAGE + currentIndex + 1;
+      if (currentPlayer.includes('unknown'))
+        currentPlayer = currentPlayer.substring(2);
 
       const rankText = ButtonFactoryText(
         rankX,

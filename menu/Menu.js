@@ -93,14 +93,56 @@ Menu.prototype.__createMainTexts = function () {
     clickCallback.bind(this, 'leaderboard')
   );
 
+  this.privateCheckbox = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.8,
+    'Private mode disabled',
+    { fill: '#ccc', fontSize: 20 }
+  );
+  const drawPrivatePublicText = function () {
+    this.removeChild(this.privateCheckbox);
+    this.privateCheckbox = ButtonFactoryText(
+      this.screenWidth * 0.5,
+      this.screenHeight * 0.8,
+      `Private mode ${this.userInfo.isPublic ? 'disabled' : 'enabled'}`,
+      { fill: `${this.userInfo.isPublic ? '#ccc' : '#fff'}`, fontSize: 20 }
+    );
+    this.addChild(this.privateCheckbox);
+  };
+
+  const updatePrivacyLeaderboard = function () {
+    drawPrivatePublicText.bind(this)();
+    updateLeaderboard(
+      this.userInfo.id,
+      'privacy',
+      this.userInfo.isPublic,
+      (data) => {
+        if (!data.success)
+          console.error('error updating privacy of leaderboard');
+      }
+    );
+  };
+  drawPrivatePublicText.bind(this)();
+  const privateToggleCallback = function () {
+    this.userInfo.isPublic = !this.userInfo.isPublic;
+    updateUser(this.userInfo, updatePrivacyLeaderboard.bind(this));
+  };
+  this.privateText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.84,
+    'Click to toggle',
+    { fill: '#fff', fontSize: 18 },
+    privateToggleCallback.bind(this)
+  );
+
   this.addChild(this.playGameText);
   this.addChild(this.leaderboardText);
+  this.addChild(this.privateText);
 };
 
 Menu.prototype._removeMainPage = function () {
   if (this.playGameText) this.removeChild(this.playGameText);
   if (this.leaderboardText) this.removeChild(this.leaderboardText);
-  if (this.logoutText) this.removeChild(this.logoutText);
 };
 
 Menu.prototype._createMainPage = function () {
@@ -120,6 +162,7 @@ Menu.prototype._initialize = function () {
       return;
     }
     this.userInfo = data.userInfo;
+    console.log(this.userInfo);
     this._createMainPage();
   };
   console.log(id);
