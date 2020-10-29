@@ -627,20 +627,6 @@ CardSwap.prototype._increaseScoreText = function (
             unlockLevelText.anchor.set(0.5);
             this.addChild(unlockLevelText);
           }
-        } else {
-          // add the next level button since user level is higher already
-
-          // create next level button
-          const goNextLevelText = ButtonFactoryText(
-            this.screenWidth * 0.4,
-            this.screenHeight * 0.5,
-            `Go to level ${this.difficulty + 1}`,
-            { fill: '#fff', fontSize: 35 },
-            () => {
-              this.startGameCallback(this.difficulty + 1, this.userInfo);
-            }
-          );
-          this.addChild(goNextLevelText);
         }
       }
 
@@ -682,7 +668,7 @@ CardSwap.prototype._increaseScoreText = function (
           { fill: '#fff', fontSize: 35 },
           () => {
             this.startGameCallback(
-              this.difficulty,
+              this.userInfo.level,
               this.userInfo,
               null,
               this.npcLevel
@@ -876,14 +862,18 @@ CardSwap.prototype._calculateScore = function () {
   const self = this;
   updateUser(this.userInfo, (data) => {
     if (!data.success) console.log('error updating user information');
+
+    let leaderboardName = self.userInfo.id;
+    if (!self.userInfo.isPublic) leaderboardName = leaderboardName + '_unknown';
     updateLeaderboard(
-      self.userInfo.id,
+      leaderboardName,
       'timesPlayed',
       self.userInfo.timesPlayed,
       (data) => {
         if (!data.success) console.error('error updating leaderboard');
+        console.log(leaderboardName);
         updateLeaderboard(
-          self.userInfo.id,
+          leaderboardName,
           'highestLevel',
           self.userInfo.level,
           (data) => {
@@ -918,8 +908,11 @@ CardSwap.prototype._calculateScore = function () {
       updateUser(this.userInfo, (data) => {
         if (!data.success) console.error('error updating user information');
         // update current user win rate
+        let leaderboardName = self.userInfo.id;
+        if (!self.userInfo.isPublic)
+          leaderboardName = leaderboardName + '_unknown';
         updateLeaderboard(
-          this.userInfo.id,
+          leaderboardName,
           'winningRate',
           winningRate,
           (data) => {
@@ -952,8 +945,12 @@ CardSwap.prototype._calculateScore = function () {
               updateUser(challengedUserInfo, (data) => {
                 if (!data.success)
                   console.error('error updating challenged user information');
+
+                let challengedLeaderboardName = challengedUserInfo.id;
+                if (!challengedUserInfo.isPublic)
+                  challengedLeaderboardName += '_unknown';
                 updateLeaderboard(
-                  this.challengeInformation.challengedPlayer,
+                  challengedLeaderboardName,
                   'winningRate',
                   challengedUserWinRate,
                   (data) => {

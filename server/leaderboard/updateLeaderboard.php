@@ -17,15 +17,16 @@ $id = $_POST['id'];
 $type = $_POST['type'];
 $value = $_POST['value'];
 
-// check if user exist
-$userFileDir = "${FILE_STORAGE_DIR}/{$id}/";
-$userFilename = "{$userFileDir}/info.txt";
-if (!file_exists($userFilename)) {
-  $returnValue = new stdClass();
-  $returnValue = generateResponse($returnValue, "user {$id} not found", false);
-  echo json_encode($returnValue);
-  return;
-}
+// don't have to check if user exist because the leaderboard can have unknown names where the user name is changed to unknown //
+// $userFileDir = "${FILE_STORAGE_DIR}/{$id}/";
+// $userFilename = "{$userFileDir}/info.txt";
+// if (!file_exists($userFilename)) {
+//   $returnValue = new stdClass();
+//   $returnValue = generateResponse($returnValue, "user {$id} not found", false);
+//   echo json_encode($returnValue);
+//   return;
+// }
+
 if (strcmp($type, 'timesPlayed') === 0) {
   echo updateTimesPlayedLeaderboard($LEADERBOARD_FILENAME, $id, $value);
   return;

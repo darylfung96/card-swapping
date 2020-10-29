@@ -164,7 +164,6 @@ Menu.prototype._initialize = function () {
       return;
     }
     this.userInfo = data.userInfo;
-    console.log(this.userInfo);
     this._createMainPage();
   };
   console.log(id);
