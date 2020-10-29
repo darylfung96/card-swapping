@@ -53,8 +53,7 @@ Menu.prototype._createSinglePage = function () {
 
   // solo player
   const soloCallback = function () {
-    this._removeSinglePage();
-    this._createSoloPage();
+    this.startGameCallback(this.userInfo.level, this.userInfo, null, null);
   };
   this.soloPlayerText = ButtonFactoryText(
     this.screenWidth * 0.5,
