@@ -1,4 +1,8 @@
 //========================= login page =========================//
+
+/**
+ * Enter the main page after logging in(typing name)
+ */
 Menu.prototype._enterMainPage = function () {
   const id = this.idText.text;
 
@@ -24,6 +28,9 @@ Menu.prototype._enterMainPage = function () {
   createUser(id, createUserCallback.bind(this));
 };
 
+/**
+ * Create the login(typing in name) page
+ */
 Menu.prototype._createLoginPage = function () {
   // current method (login or create id)
   this.isLoginText = new PIXI.Text('Name', { fill: '#fff', fontSize: 25 });
@@ -72,6 +79,9 @@ Menu.prototype._createLoginPage = function () {
   this.addChild(this.enterText);
 };
 
+/**
+ * Remove the login (typing in name) page
+ */
 Menu.prototype._removeLoginPage = function () {
   if (this.idText) this.removeChild(this.idText);
   if (this.enterText) this.removeChild(this.enterText);

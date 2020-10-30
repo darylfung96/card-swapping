@@ -1,3 +1,10 @@
+/**
+ * This function is the menu class that shows the menu of the game
+ *
+ * @param {int} width - the width of the canvas game screen
+ * @param {int} height - the height of the canvas game screen
+ * @param {function} startGameCallback - the function to start game
+ */
 function Menu(width, height, startGameCallback) {
   PIXI.Container.call(this);
 
@@ -13,21 +20,9 @@ function Menu(width, height, startGameCallback) {
 }
 Menu.prototype = Object.create(PIXI.Container.prototype);
 
-Menu.prototype.__createText = function (text, textStyle, x, y, clickCallback) {
-  const textCreated = new PIXI.Text(text, textStyle);
-  textCreated.x = x;
-  textCreated.y = y;
-  textCreated.anchor.set(0.5);
-  if (typeof clickCallback === 'function') {
-    textCreated.interactive = true;
-    textCreated.buttonMode = true;
-    textCreated.on('mousedown', clickCallback);
-    textCreated.on('touchstart', clickCallback);
-  }
-
-  return textCreated;
-};
-
+/**
+ * create the background for menu
+ */
 Menu.prototype._createBackground = function () {
   this.bg = PIXI.Sprite.fromImage('resources/bg/card_background.png');
   this.bg.width = this.screenWidth;
@@ -37,6 +32,9 @@ Menu.prototype._createBackground = function () {
   this.addChild(this.bg);
 };
 
+/**
+ * Create the title for the menu
+ */
 Menu.prototype.__createTitle = function () {
   this.title = ButtonFactoryText(
     this.screenWidth * 0.5,
@@ -47,6 +45,11 @@ Menu.prototype.__createTitle = function () {
   this.addChild(this.title);
 };
 
+/**
+ * A function that creates the back button in the menu page
+ * Use to navigate through different pages of menu
+ * @param {*} backCallback - when clicked on this back button, what callback to call
+ */
 Menu.prototype.__createBackButton = function (backCallback) {
   const backButton = ButtonFactoryText(
     this.screenWidth * 0.1,
@@ -60,6 +63,9 @@ Menu.prototype.__createBackButton = function (backCallback) {
 
 //========================= main page =========================//
 
+/**
+ * Create the manu text for the main menu page
+ */
 Menu.prototype.__createMainTexts = function () {
   const clickCallback = function (page) {
     const pageDict = {
@@ -93,6 +99,7 @@ Menu.prototype.__createMainTexts = function () {
     clickCallback.bind(this, 'leaderboard')
   );
 
+  // create the text for the privacy
   this.privateCheckbox = ButtonFactoryText(
     this.screenWidth * 0.5,
     this.screenHeight * 0.8,
@@ -140,6 +147,9 @@ Menu.prototype.__createMainTexts = function () {
   this.addChild(this.privateText);
 };
 
+/**
+ * Remove the main page and go to a different page
+ */
 Menu.prototype._removeMainPage = function () {
   if (this.playGameText) this.removeChild(this.playGameText);
   if (this.leaderboardText) this.removeChild(this.leaderboardText);
@@ -147,11 +157,17 @@ Menu.prototype._removeMainPage = function () {
   if (this.privateText) this.removeChild(this.privateText);
 };
 
+/**
+ * Create the main page menu
+ */
 Menu.prototype._createMainPage = function () {
   this.__createMainTexts();
 };
 
 //========================= initialize =========================//
+/**
+ * Initialize the menu page
+ */
 Menu.prototype._initialize = function () {
   this._createBackground();
   this.__createTitle();
@@ -166,7 +182,6 @@ Menu.prototype._initialize = function () {
     this.userInfo = data.userInfo;
     this._createMainPage();
   };
-  console.log(id);
   if (!id) {
     this._createLoginPage();
   } else {

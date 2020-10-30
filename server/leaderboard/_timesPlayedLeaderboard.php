@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Create the leaderboad for timesPlayed when timesPlayed does not exist yet
+ *
+ * @param [string] $leaderboardFilename - the filename to the leaderboard
+ * @param [object] $AllLeaderboardInfo - the information of the leaderboard
+ * @param [string] $id - the user id to add into the leaderboard
+ * @param [string] $value - the number of timesPlayed
+ * @return void
+ */
 function createNewTimesPlayedLeaderboard($leaderboardFilename, $AllLeaderboardInfo, $id, $value) {
   $AllLeaderboardInfo->timesPlayed = new stdClass();
   $AllLeaderboardInfo->timesPlayed->{$id} = $value;

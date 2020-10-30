@@ -1,5 +1,9 @@
 //========================= challenge player page =========================//
-
+/**
+ * list out the current page of the challenges notification(send/receive)
+ *
+ * @param {int} pageIndex Which page to show the received challenge notification
+ */
 Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
   // remove existing children;
   if (this.receivedChallengePerPageChildren) {
@@ -186,6 +190,9 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
   }
 };
 
+/**
+ * Create the page for the notification (receive/send) challenge
+ */
 Menu.prototype._createReceiveChallengePage = function () {
   const backCallback = function () {
     this._removeReceiveChallengePage();
@@ -204,6 +211,10 @@ Menu.prototype._createReceiveChallengePage = function () {
 
   getChallenge(this.userInfo.id, receivedChallengeCallback.bind(this));
 };
+
+/**
+ * Remove the notification challenge(receive/send) page
+ */
 Menu.prototype._removeReceiveChallengePage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.prevButton);
@@ -219,6 +230,13 @@ Menu.prototype._removeReceiveChallengePage = function () {
   this.receivedChallengePerPageChildren = null;
 };
 
+/**
+ * This function cluster the players into several pages since if there are many pla yers they won't fit into one screen
+ * For instance, if there is [1,2,3,4,5,6,7] 7 players and the screen can only fit 5 players,
+ * this function will separate them into different pages like: [[1,2,3,4,5], [6,7]] for maximum of 5 items per page
+ *
+ * @param {array} filteredPlayers - contains all the list of players
+ */
 Menu.prototype.__processPlayersToList = function (filteredPlayers) {
   let allPlayersPerPage = [];
   const totalPages = Math.ceil(filteredPlayers.length / MAX_ITEM_PER_PAGE);
@@ -234,6 +252,10 @@ Menu.prototype.__processPlayersToList = function (filteredPlayers) {
   return allPlayersPerPage;
 };
 
+/**
+ * List all the players in the send challenge page
+ * @param {int} pageIndex - the current page to show the list
+ */
 Menu.prototype._listSendChallengePlayers = function (pageIndex) {
   // remove existing children;
   if (this.allPlayersPerPageChildren) {
@@ -366,6 +388,9 @@ Menu.prototype._listSendChallengePlayers = function (pageIndex) {
     this.addChild(this.nextButton);
   }
 };
+/**
+ * Create the send challenge page
+ */
 Menu.prototype._createSendChallengePage = function () {
   const backCallback = function () {
     this._removeSendChallengePage();
@@ -424,6 +449,9 @@ Menu.prototype._createSendChallengePage = function () {
   getUsers(getPlayers.bind(this));
 };
 
+/**
+ * remove the send challenge page
+ */
 Menu.prototype._removeSendChallengePage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.prevButton);
@@ -440,6 +468,9 @@ Menu.prototype._removeSendChallengePage = function () {
   this.allPlayersPerPageChildren = null;
 };
 
+/**
+ * create the main challenge page
+ */
 Menu.prototype._createChallengePage = function () {
   const backCallback = function () {
     this._removeChallengePage();
@@ -477,6 +508,9 @@ Menu.prototype._createChallengePage = function () {
   this.addChild(this.sendChallengeText);
 };
 
+/**
+ * Remove the main challenge page
+ */
 Menu.prototype._removeChallengePage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.receiveChallengeText);

@@ -1,8 +1,11 @@
 //========================= leaderboard =========================//
 const MAX_ITEM_PER_PAGE = 5;
-//todo make winningRate leaderboard
 
 //------------------------- most played -------------------------//
+/**
+ * The callback after getting the leaderboard for the most played
+ * @param {object} data
+ */
 Menu.prototype._getMostPlayed = function (data) {
   if (!data.success) {
     console.error('error obtaining most played leaderboard data');
@@ -36,6 +39,11 @@ Menu.prototype._getMostPlayed = function (data) {
   this.currentPage = 0;
   this._listMostPlayed(this.currentPage);
 };
+
+/**
+ * List the most played leaderboard
+ * @param {int} pageIndex - The page index to list players
+ */
 Menu.prototype._listMostPlayed = function (pageIndex) {
   // if most played already listed, we don't have to do anything here
   if (this.mostPlayedChildren) return;
@@ -150,6 +158,10 @@ Menu.prototype._listMostPlayed = function (pageIndex) {
     this.addChild(this.nextButton);
   }
 };
+
+/**
+ * Remove the most played leaderboard list
+ */
 Menu.prototype._removeMostPlayed = function () {
   if (!this.mostPlayedChildren) return;
 
@@ -164,6 +176,10 @@ Menu.prototype._removeMostPlayed = function () {
 };
 
 //------------------------- winning rate -------------------------//
+/**
+ * The callback for the call to the backend server after getting winningRate leaderboard
+ * @param {object} data - the object received from the server, contains winningRate key
+ */
 Menu.prototype._getWinningRate = function (data) {
   if (!data.success) {
     console.error('error getting winning rate from leaderboard');
@@ -198,6 +214,10 @@ Menu.prototype._getWinningRate = function (data) {
   this.currentPage = 0;
   this._listWinningRate(this.currentPage);
 };
+/**
+ * List the winning rate leaderboard
+ * @param {int} pageIndex - the index of the page to show
+ */
 Menu.prototype._listWinningRate = function (pageIndex) {
   // if most played already listed, we don't have to do anything here
   if (this.winningRateChildren) return;
@@ -314,6 +334,10 @@ Menu.prototype._listWinningRate = function (pageIndex) {
     this.addChild(this.nextButton);
   }
 };
+
+/**
+ * Remove the winning rate leaderboard
+ */
 Menu.prototype._removeWinningRate = function () {
   if (!this.winningRateChildren) return;
 
@@ -328,6 +352,10 @@ Menu.prototype._removeWinningRate = function () {
 };
 
 //------------------------- highest level -------------------------//
+/**
+ * The callback after receiving highestLevel from the server
+ * @param {object} data - the data received from the server, contains highestLevel key
+ */
 Menu.prototype._getHighestLevel = function (data) {
   if (!data.success) {
     console.error('error obtaining most played leaderboard data');
@@ -357,6 +385,11 @@ Menu.prototype._getHighestLevel = function (data) {
 
   this._listHighestLevel(this.currentPage);
 };
+
+/**
+ * List out the highestLevel leaderboard
+ * @param {int} pageIndex - the page to list for the highestLevel leaderboard
+ */
 Menu.prototype._listHighestLevel = function (pageIndex) {
   // if highest level is already listed, then we don't have to do anything here
   if (this.highestLevelChildren) return;
@@ -477,6 +510,10 @@ Menu.prototype._listHighestLevel = function (pageIndex) {
     this.addChild(this.nextButton);
   }
 };
+
+/**
+ * remove the highest level leaderboard list
+ */
 Menu.prototype._removeHighestLevel = function () {
   if (!this.highestLevelChildren) return;
 
@@ -492,6 +529,9 @@ Menu.prototype._removeHighestLevel = function () {
 
 //------------------------- initialization -------------------------//
 
+/**
+ * Create the main leaderboard page
+ */
 Menu.prototype._createLeaderboardPage = function () {
   // create back button
   const backButton = function () {
@@ -581,6 +621,9 @@ Menu.prototype._createLeaderboardPage = function () {
   getLeaderboard('timesPlayed', this._getMostPlayed.bind(this));
 };
 
+/**
+ * remove the main leaderboard page
+ */
 Menu.prototype._removeLeaderboardPage = function () {
   this.removeChild(this.backButton);
   this.removeChild(this.mostPlayedText);

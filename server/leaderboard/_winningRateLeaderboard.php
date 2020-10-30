@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Create a new winning rate leaderboard
+ *
+ * @param [string] $leaderboardFilename - the filename to the leaderboard
+ * @param [object] $AllLeaderboardInfo - the object information of the leaderboard
+ * @param [string] $id - the user id to add into the leaderboard
+ * @param [string] $value - the winning rate of this user
+ * @return void
+ */
 function createNewWinningRateLeaderboard($leaderboardFilename, $AllLeaderboardInfo, $id, $value) {
   $AllLeaderboardInfo->winningRate = new stdClass();
   $AllLeaderboardInfo->winningRate->{$id} = $value;
@@ -9,6 +18,14 @@ function createNewWinningRateLeaderboard($leaderboardFilename, $AllLeaderboardIn
   return json_encode($returnValue);
 }
 
+/**
+ * Update the winning rate leaderboard
+ *
+ * @param [string] $leaderboardFilename - the filename of the leaderboard
+ * @param [string] $id - the user to update
+ * @param [string] $value - the value of the winning rate
+ * @return void
+ */
 function updateWinningRateLeaderboard($leaderboardFilename, $id, $value) {
   // make NaN becomes zero
   if (strcmp($value, 'NaN') === 0) {

@@ -28,6 +28,12 @@ $challengedUserFilename = "{$challengedIdDir}/challenge.txt";
 
 $globalChallengeIdFilename = "${FILE_STORAGE_DIR}/challengeInfo.txt";
 
+/**
+ * Get the next challenge ID before adding the key to the challenge information to store for both players
+ *
+ * @param [string] $globalChallengeIdFilename - the filename to store for the total challenge ID so we can have unique ids
+ * @return void
+ */
 function getNextChallengeId($globalChallengeIdFilename) {
 
   if (!file_exists($globalChallengeIdFilename)) {
@@ -44,6 +50,17 @@ function getNextChallengeId($globalChallengeIdFilename) {
 }
 
 
+/**
+ * Add the challenge to the user id provided
+ *
+ * @param [int] $challengePrimaryKey -  The primary key of the challenge
+ * @param [string] $filename - the filename of the user id
+ * @param [string] $currentId - the user id
+ * @param [float] $userNormalizedScore - the score this user obtained
+ * @param [string] $type - receive/send (the type of the challenge for this user)
+ * @param [string] $seed - the seed in this challenge
+ * @return void
+ */
 function addChallenge($challengePrimaryKey, $filename, $currentId, $userNormalizedScore, $type, $seed) {
   $challengeObject = new stdClass();
   if (file_exists("$filename")) {
@@ -64,6 +81,14 @@ function addChallenge($challengePrimaryKey, $filename, $currentId, $userNormaliz
   return $returnValue;
 }
 
+/**
+ * Update existing challenge information
+ *
+ * @param [type] $challengePrimaryKey - the challenge primary key 
+ * @param [type] $filename - the filename of the user
+ * @param [type] $result - the result (win, lose, tie)
+ * @return void
+ */
 function updateChallenge($challengePrimaryKey, $filename, $result) {
   $returnValue = new stdClass();
 
