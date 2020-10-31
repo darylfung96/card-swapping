@@ -49,7 +49,9 @@ function createTable($conn) {
     userLevel INT DEFAULT 1,
     wins INT DEFAULT 0,
     loses INT DEFAULT 0,
-    levelInformation VARCHAR(255)
+    levelInformation VARCHAR(255),
+    isPublic BOOLEAN NOT NULL DEFAULT 1,
+    UNIQUE (userName)
     );";
   if ($conn->query($sql) === TRUE) {
     echo "created user table successfully\n";
@@ -62,6 +64,7 @@ function createTable($conn) {
     id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     senderName VARCHAR(30) NOT NULL,
     receiverName VARCHAR(30) NOT NULL,
+    userNormalizedScore FLOAT NOT NULL,
     seed VARCHAR(10) NOT NULL,
     result VARCHAR(10)
     );";
