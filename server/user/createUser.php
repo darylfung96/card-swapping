@@ -25,7 +25,7 @@ if ($conn->query($sql) === TRUE) {
   $returnValue->userInfo = $userInfo;
   generateResponse($returnValue, "Successfully obtained user", true);
 } else {
-  generateResponse($returnValue, "No user with the name found", false);
+  generateResponse($returnValue, "Name already exists, try a different name", false);
 }
 
 

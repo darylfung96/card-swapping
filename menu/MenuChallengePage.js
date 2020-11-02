@@ -428,7 +428,7 @@ Menu.prototype._createSendChallengePage = function () {
       disabled: { fill: 0xdbdbdb, rounded: 12 },
     },
   });
-  this.searchInput.placeholder = 'Search for player ID';
+  this.searchInput.placeholder = 'Search for player name';
   this.searchInput.x = this.screenWidth * 0.5;
   this.searchInput.y = this.screenHeight * 0.2;
   this.searchInput.pivot.x = this.searchInput.width / 2;

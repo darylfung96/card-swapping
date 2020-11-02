@@ -99,6 +99,15 @@ Menu.prototype.__createMainTexts = function () {
     clickCallback.bind(this, 'leaderboard')
   );
 
+  // create text for player name
+  this.playerNameText = ButtonFactoryText(
+    this.screenWidth * 0.5,
+    this.screenHeight * 0.7,
+    `Player name: ${this.userInfo.id}`,
+    { fill: '#fff', fontSize: 20 }
+  );
+  this.addChild(this.playerNameText);
+
   // create the text for the privacy
   this.privateCheckbox = ButtonFactoryText(
     this.screenWidth * 0.5,
@@ -155,6 +164,7 @@ Menu.prototype._removeMainPage = function () {
   if (this.leaderboardText) this.removeChild(this.leaderboardText);
   if (this.privateCheckbox) this.removeChild(this.privateCheckbox);
   if (this.privateText) this.removeChild(this.privateText);
+  if (this.playerNameText) this.removeChild(this.playerNameText);
 };
 
 /**
