@@ -4,40 +4,27 @@ include './_timesPlayedLeaderboard.php';
 include './_highestLevelLeaderboard.php';
 include './_winningRateLeaderboard.php';
 include './_privacyLeaderboard.php';
-include '../common.php';
+include '../connection.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 
-// leaderboardInfo should contain this format
-// leaderBoardInfo = {timesPlayed: {id1: 5, id2: 12, id3: 1}, highestScore: {level3: {id1: 6, id2:3}, level2: {id1: 5, id2:3}}...}
-
 $id = $_POST['id'];
 $type = $_POST['type'];
 $value = $_POST['value'];
 
-// don't have to check if user exist because the leaderboard can have unknown names where the user name is changed to unknown //
-// $userFileDir = "${FILE_STORAGE_DIR}/{$id}/";
-// $userFilename = "{$userFileDir}/info.txt";
-// if (!file_exists($userFilename)) {
-//   $returnValue = new stdClass();
-//   $returnValue = generateResponse($returnValue, "user {$id} not found", false);
-//   echo json_encode($returnValue);
-//   return;
-// }
-
 if (strcmp($type, 'timesPlayed') === 0) {
-  echo updateTimesPlayedLeaderboard($LEADERBOARD_FILENAME, $id, $value);
+  echo updateTimesPlayedLeaderboard($id, $value);
   return;
 } else if (strcmp($type, 'highestLevel') === 0) {
-  echo updateHighestlevelLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
+  echo updateHighestlevelLeaderboard($id, $value); 
   return;
 } else if (strcmp($type, 'winningRate') === 0) {
-  echo updateWinningRateLeaderboard($LEADERBOARD_FILENAME, $id, $value); 
+  echo updateWinningRateLeaderboard($id, $value); 
   return;
 } else if (strcmp($type, 'privacy') === 0) { // true will be public, false will be private
-  echo updatePrivacyLeaderboard($LEADERBOARD_FILENAME, $id, $value);
+  echo updatePrivacyLeaderboard($id, $value);
   return;
 }
 

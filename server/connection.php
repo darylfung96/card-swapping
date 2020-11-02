@@ -76,10 +76,10 @@ function createTable($conn) {
 
   // create leaderboard table
   $sql = "CREATE TABLE IF NOT EXISTS Leaderboard (
-    id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     userName VARCHAR(30) NOT NULL,
     leaderboardType VARCHAR(30) NOT NULL, 
-    leaderboardValue FLOAT NOT NULL
+    leaderboardValue FLOAT NOT NULL,
+    PRIMARY KEY (userName, leaderboardType)
     );";
   if ($conn->query($sql) === TRUE) {
     echo "created leaderboard table successfully\n";

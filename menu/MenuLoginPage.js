@@ -21,6 +21,8 @@ Menu.prototype._enterMainPage = function () {
       // successfully created user
       setCookie('id', id, 365);
       this.userInfo = data.userInfo;
+      this.userInfo.level = parseInt(this.userInfo.level);
+
       this._removeLoginPage();
       this._createMainPage();
     }

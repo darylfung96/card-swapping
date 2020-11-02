@@ -1,6 +1,5 @@
 <?php
 include '../returnResponse.php';
-include '../common.php';
 include '../connection.php';
 
 header('Access-Control-Allow-Origin: *');
@@ -30,7 +29,6 @@ function addChallenge($userId, $challengedId, $userNormalizedScore, $seed) {
   $conn = createConn();
   $sql = "INSERT INTO Challenge (senderName, receiverName, userNormalizedScore, seed) " .
   "VALUES ('$userId', '$challengedId', $userNormalizedScore, '$seed');";
-  print_r($sql);
   $returnValue = new stdClass();
   $returnValue = generateResponse($returnValue, "Successfully added challenge", true);
   if ($conn->query($sql) !== TRUE) {

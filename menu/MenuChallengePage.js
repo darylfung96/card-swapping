@@ -107,7 +107,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
         seed: this.receivedChallengePerPage[pageIndex][i].seed,
       };
       // if there is no result yet
-      if (this.receivedChallengePerPage[pageIndex][i].result === undefined) {
+      if (this.receivedChallengePerPage[pageIndex][i].result === null) {
         const challengeCallback = function () {
           const difficulty = this.userInfo.level;
           this.startGameCallback(
@@ -144,7 +144,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     } else {
       // if it is a sent challenge
       let textResult = '';
-      if (this.receivedChallengePerPage[pageIndex][i].result === undefined)
+      if (this.receivedChallengePerPage[pageIndex][i].result === null)
         textResult = 'pending';
       else
         textResult = `${this.receivedChallengePerPage[pageIndex][i].result}!`;

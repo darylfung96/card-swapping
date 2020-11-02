@@ -1,6 +1,5 @@
 <?php
 include '../returnResponse.php';
-include '../common.php';
 include '../connection.php';
 
 header('Access-Control-Allow-Origin: *');
@@ -11,8 +10,10 @@ $id = $_GET['id'];
 
 $conn = createConn();
 $sql = "SELECT * from Challenge WHERE senderName='$id' or receiverName='$id' ORDER BY id DESC";
-
+$returnValue = new stdClass();
 $challengeArray = [];
+$returnValue->challenges = $challengeArray;
+
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
@@ -21,16 +22,17 @@ if ($result->num_rows > 0) {
     if (strcmp($row['senderName'], $id) !== 0) {
       $currentChallenge->id = $row['senderName'];
       $currentChallenge->type = 'receive';
+      $currentChallenge->result = strcmp(row['result'], 'win') === 0 ? 'lose': 'win';
     }
     else if (strcmp($row['receiverName'], $id) !== 0) {
       $currentChallenge->id = $row['senderName'];
       $currentChallenge->type = 'send';
+      $currentChallenge->result = $row['result'];
     }
 
     $currentChallenge->score = $row['userNormalizedScore'];
     $currentChallenge->seed = $row['seed'];
     $currentChallenge->challengePrimaryKey = $row['id'];
-    $currentChallenge->result = $row['result'];
     array_push($challengeArray, $currentChallenge);
   }
   $returnValue->challenges = $challengeArray;
