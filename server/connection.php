@@ -4,6 +4,11 @@ $username = "newusercardswap2";
 $password = "password";
 $database = "cardSwapDB";
 
+/**
+ * setup and return the connection for the database
+ *
+ * @return mysqli
+ */
 function createConn() {
   global $host, $username, $password, $database;
 
@@ -17,6 +22,12 @@ function createConn() {
 }
 
 
+/**
+ * Create the database if  not exist yet
+ *
+ * @param [type] $conn
+ * @return void
+ */
 function createDB($conn) {
   global $database;
 
@@ -29,6 +40,11 @@ function createDB($conn) {
   }
 }
 
+/**
+ * Focus on the specified database
+ *
+ * @param [mysqli] $conn
+ */
 function useDB($conn) {
   global $database;
   $sql = "USE $database;";
@@ -40,6 +56,11 @@ function useDB($conn) {
   }
 }
 
+/**
+ * Create the tables for CardSwap game
+ *
+ * @param [mysqli] $conn
+ */
 function createTable($conn) {
   // create user table
   $sql = "CREATE TABLE IF NOT EXISTS User (

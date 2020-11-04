@@ -19,21 +19,22 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
   while($row = $result->fetch_assoc()) {
     $currentChallenge = new stdClass();
+    // if the player is not the one who sends it
     if (strcmp($row['senderName'], $id) !== 0) {
       $currentChallenge->id = $row['senderName'];
       $currentChallenge->type = 'receive';
       $currentChallenge->result = $row['result'];
     }
+    // if the player is not the one who receives it (the sender), then the actual result will be the opposite of the result
     else if (strcmp($row['receiverName'], $id) !== 0) {
       $currentChallenge->id = $row['receiverName'];
       $currentChallenge->type = 'send';
-      $currentChallenge->result = strcmp($row['result'], 'win') === 0 ? 'lose': 'win';
+
+      if (strcmp($row['result'], 'win') === 0) $currentChallenge->result = 'lose';
+      else if (strcmp($row['result'], 'lose') === 0) $currentChallenge->result = 'win';
+      else $currentChallenge->result = $row['result'];
     }
 
-    // set the result back to NULL if the result is NULL
-    if ($row['result'] === NULL) {
-      $currentChallenge->result = $row['result'];
-    }
 
     $currentChallenge->score = $row['userNormalizedScore'];
     $currentChallenge->seed = $row['seed'];

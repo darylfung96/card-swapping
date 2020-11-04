@@ -29,19 +29,6 @@ Main.prototype.update = function () {
 };
 
 /**
- * getUrlParameter receives the query parameter from the url
- * @param {string} name - The name of the query parameter
- */
-function getUrlParameter(name) {
-  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-  var results = regex.exec(location.search);
-  return results === null
-    ? ''
-    : decodeURIComponent(results[1].replace(/\+/g, ' '));
-}
-
-/**
  * this function returns to main menu
  */
 Main.prototype.returnMenuCallback = function () {
@@ -65,38 +52,21 @@ Main.prototype.startGameCallback = function (
   challengeInformation,
   npcLevel
 ) {
-  let numPlayers = getUrlParameter('numPlayers') || null;
-
-  // max player is 4 and min player is 1
-  if (numPlayers !== null) {
-    numPlayers = Math.min(Math.max(1, numPlayers), 4);
-  }
-
   // randomize the seed
   let seed = createRandomString(10);
   if (challengeInformation && challengeInformation.seed) {
     seed = challengeInformation.seed;
   }
 
-  if (numPlayers) {
-    this.renderingContainer = new CardSwapMultiplayerContainer(
-      this.width,
-      this.height,
-      difficulty,
-      seed,
-      numPlayers
-    );
-  } else {
-    this.renderingContainer = new CardSwap(
-      this.width,
-      this.height,
-      difficulty,
-      seed,
-      npcLevel,
-      userInfo,
-      challengeInformation || null,
-      this.startGameCallback.bind(this),
-      this.returnMenuCallback.bind(this)
-    );
-  }
+  this.renderingContainer = new CardSwap(
+    this.width,
+    this.height,
+    difficulty,
+    seed,
+    npcLevel,
+    userInfo,
+    challengeInformation || null,
+    this.startGameCallback.bind(this),
+    this.returnMenuCallback.bind(this)
+  );
 };
