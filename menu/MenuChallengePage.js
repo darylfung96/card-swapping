@@ -16,7 +16,6 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
 
   // add the children that is added to the container so we can remove them afterwards
   this.receivedChallengePerPageChildren = [];
-
   // don't list any players if no players are found
   if (this.receivedChallengePerPage.length === 0) {
     this.emptyText = ButtonFactoryText(
@@ -74,9 +73,10 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
     const normalizedScoreToBeat = this.receivedChallengePerPage[pageIndex][i]
       .score;
     const totalScore = 3 * levelToTargetCardsNumber[this.userInfo.level] * 2;
-    const scoreToBeat =
+    const scoreToBeat = Math.ceil(
       normalizedScoreToBeat * totalScore -
-      levelToTargetCardsNumber[this.userInfo.level] * 3;
+        levelToTargetCardsNumber[this.userInfo.level] * 3
+    );
 
     const currentPlayerText = ButtonFactoryText(
       leftX,
@@ -106,6 +106,7 @@ Menu.prototype._listReceivedChallengePlayers = function (pageIndex) {
           .challengePrimaryKey,
         seed: this.receivedChallengePerPage[pageIndex][i].seed,
       };
+
       // if there is no result yet
       if (this.receivedChallengePerPage[pageIndex][i].result === null) {
         const challengeCallback = function () {
@@ -203,6 +204,7 @@ Menu.prototype._createReceiveChallengePage = function () {
 
   const receivedChallengeCallback = function (data) {
     const receivedChallenges = data.challenges;
+    console.log(receivedChallenges);
     this.receivedChallengePerPage = this.__processPlayersToList(
       receivedChallenges
     );

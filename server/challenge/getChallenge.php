@@ -22,11 +22,16 @@ if ($result->num_rows > 0) {
     if (strcmp($row['senderName'], $id) !== 0) {
       $currentChallenge->id = $row['senderName'];
       $currentChallenge->type = 'receive';
-      $currentChallenge->result = strcmp(row['result'], 'win') === 0 ? 'lose': 'win';
+      $currentChallenge->result = $row['result'];
     }
     else if (strcmp($row['receiverName'], $id) !== 0) {
-      $currentChallenge->id = $row['senderName'];
+      $currentChallenge->id = $row['receiverName'];
       $currentChallenge->type = 'send';
+      $currentChallenge->result = strcmp($row['result'], 'win') === 0 ? 'lose': 'win';
+    }
+
+    // set the result back to NULL if the result is NULL
+    if ($row['result'] === NULL) {
       $currentChallenge->result = $row['result'];
     }
 

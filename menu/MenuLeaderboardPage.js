@@ -104,7 +104,7 @@ Menu.prototype._listMostPlayed = function (pageIndex) {
       this.processedMostPlayedLeaderboard[pageIndex][i]
     )[0];
     if (currentPlayerName.includes('unknown'))
-      currentPlayerName = currentPlayerName.substring(2);
+      currentPlayerName = currentPlayerName.split('_')[1];
     const currentPlayer = ButtonFactoryText(
       mostPlayedLeftX,
       mostPlayedStartY + spacingY * (i + 1),
@@ -278,7 +278,7 @@ Menu.prototype._listWinningRate = function (pageIndex) {
       this.processedWinningRateLeaderboard[pageIndex][i]
     )[0];
     if (currentPlayerName.includes('unknown'))
-      currentPlayerName = currentPlayerName.substring(2);
+      currentPlayerName = currentPlayerName.split('_')[1];
     const currentPlayer = ButtonFactoryText(
       winningRateLeftX,
       winningRateStartY + spacingY * (i + 1),
@@ -448,7 +448,7 @@ Menu.prototype._listHighestLevel = function (pageIndex) {
       ][currentPlayer];
       const rank = currentPage * MAX_ITEM_PER_PAGE + currentIndex + 1;
       if (currentPlayer.includes('unknown'))
-        currentPlayer = currentPlayer.substring(2);
+        currentPlayer = currentPlayer.split('_')[1];
 
       const rankText = ButtonFactoryText(
         rankX,

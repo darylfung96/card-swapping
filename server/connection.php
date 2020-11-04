@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
-$username = "cardswapusername";
-$password = "cardswappassword";
+$username = "newusercardswap2";
+$password = "password";
 $database = "cardSwapDB";
 
 function createConn() {
