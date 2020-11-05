@@ -1,60 +1,4 @@
 /**
-  ButtonFactorySprite creates a button with provided sprite
-  The return value is a PIXI Sprite 
-
-* @param {float} x:                   position x
-* @param {float} y:                   position y
-* @param {string}outSprite:           The location for the image for when the button is in default state
-* @param {string}onOverSprite:        The location for the image when mouse is hovered onto this button
-* @param {function}clickCallback:     Callback for clicking this button
-
-*/
-function ButtonFactorySprite(x, y, outSprite, onOverSprite, clickCallback) {
-  var button = PIXI.Sprite.fromImage(outSprite);
-  var textureUp = PIXI.Texture.fromImage(outSprite);
-  var textureOver = PIXI.Texture.fromImage(onOverSprite);
-
-  // adjust button
-  button.anchor.set(0.5);
-  button.position.x = x;
-  button.position.y = y;
-  button.interactive = true;
-
-  mouseOverCallBack = function () {
-    this.texture = textureOver;
-  };
-  mouseOutCallBack = function () {
-    this.texture = textureUp;
-  };
-  mouseDownCallBack = function () {
-    this.scale.x = 0.9;
-    this.scale.y = 0.9;
-  };
-  mouseUpCallBack = function (clickCallback) {
-    this.scale.x = 1;
-    this.scale.y = 1;
-
-    if (clickCallback) clickCallback();
-  };
-
-  button
-    .on('mouseover', mouseOverCallBack)
-
-    .on('touchstart', mouseDownCallBack)
-    .on('mousedown', mouseDownCallBack)
-
-    // set the mouseup and touchend callback...
-    .on('mouseup', mouseUpCallBack.bind(button, clickCallback))
-    .on('touchend', mouseUpCallBack.bind(button, clickCallback))
-    .on('mouseupoutside', mouseUpCallBack)
-    .on('touchendoutside', mouseUpCallBack)
-
-    .on('mouseout', mouseOutCallBack);
-
-  return button;
-}
-
-/**
  * ButtonFactoryText creates a text that is clickable.
  * The return value is a PIXI Text
  * @param {float} x - the x position of the text button
@@ -111,8 +55,10 @@ function ButtonFactoryText(x, y, text, textStyle, clickCallback) {
  * 
   @param{float} x:                    position x
   @param{float} y:                    position y
-  @param{string} buttonSprite:         The image of the button
-  @param{function} clickCallback:        Callback for clicking this button
+  @param{int} width:                  The width of the button
+  @param{int} height:                 the height of the butotn
+  @param{string} buttonSprite:        The image of the button
+  @param{function} clickCallback:     Callback for clicking this button
 */
 function ButtonFactory(x, y, width, height, buttonSprite, clickCallback) {
   var button = new PIXI.Sprite.fromImage(buttonSprite);
